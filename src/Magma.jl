@@ -307,7 +307,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
         taup=similar(A,$elty,minmn)
         work=Vector{$elty}(undef,1)
         lwork=Int64(-1)
-        info  = Ref{BlasInt}()
+        info  = Ref{Int64}()
         ida=max(1,stride(A,2))
 
         for i= 1:2
@@ -326,7 +326,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
         m,n=size(A)
         minmn=min(m,n)
         ipiv=similar(A,Int64,minmn)
-        info  = Ref{BlasInt}()
+        info  = Ref{Int64}()
         ida=max(1,stride(A,2))
         getrf(m,n,A,ida,ipiv,info)
         checkmagmaerror(info[])
@@ -340,7 +340,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
         lwork=Int64(-1)
-        info = Ref{BlasInt}()
+        info = Ref{Int64}()
         for i= 1:2
             gelqf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
@@ -360,7 +360,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
         lwork=Int64(-1)
-        info = Ref{BlasInt}()
+        info = Ref{Int64}()
         for i= 1:2
             geqlf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
@@ -380,7 +380,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
         lwork=Int64(-1)
-        info = Ref{BlasInt}()
+        info = Ref{Int64}()
         for i= 1:2
             geqrf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
