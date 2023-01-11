@@ -33787,7 +33787,7 @@ end
 
 const MAGMA_API = 2
 
-const magmaCfma = cuCfma
+#= const magmaCfma = cuCfma
 
 const magmaCfmaf = cuCfmaf
 
@@ -33809,7 +33809,7 @@ const MAGMA_C_HALF = MAGMA_C_MAKE(0.5, 0.0)
 
 const MAGMA_C_NEG_ONE = MAGMA_C_MAKE(-1.0, 0.0)
 
-const MAGMA_C_NEG_HALF = MAGMA_C_MAKE(-0.5, 0.0)
+const MAGMA_C_NEG_HALF = MAGMA_C_MAKE(-0.5, 0.0) =#
 
 const MAGMA_D_ZERO = 0.0
 
@@ -34557,9 +34557,9 @@ const magma_crot = magma_crot_v1
 
 const magma_csrot = magma_csrot_v1
 
-const magma_crotm = magma_crotm_v1
+#const magma_crotm = magma_crotm_v1
 
-const magma_crotmg = magma_crotmg_v1
+#const magma_crotmg = magma_crotmg_v1
 
 const magma_cscal = magma_cscal_v1
 
@@ -34753,9 +34753,9 @@ const magma_zrot = magma_zrot_v1
 
 const magma_zdrot = magma_zdrot_v1
 
-const magma_zrotm = magma_zrotm_v1
+#const magma_zrotm = magma_zrotm_v1
 
-const magma_zrotmg = magma_zrotmg_v1
+#const magma_zrotmg = magma_zrotmg_v1
 
 const magma_zscal = magma_zscal_v1
 
