@@ -2,6 +2,7 @@ module Magma
 
 using .LibMagma
 # Write your package code here.
+
 struct MAGMAException <:Exception
     info::Int64
 end
@@ -42,9 +43,9 @@ for(gels,gesv,elty) in (
     (:magma_zgels,:magma_zgesv,:ComplexF64),
     (:magma_cgels,:magma_cgesv,:ComplexF32)
 )
-  @eval begin
+@eval begin
     function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
-        checktranspose(T)
+        checktranspose(trans)
         m,n =size(A)
         btrn= trans == 'T'
         if size(B,1) != (btrn ? n : m)
@@ -62,8 +63,8 @@ for(gels,gesv,elty) in (
 
 
     end
-    function gsev!(A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
-        m,n=size(A)
+    function gesv!(A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
+        n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
@@ -76,9 +77,7 @@ for(gels,gesv,elty) in (
         checkmagmaerror(info[])
         return B,A,ipiv
     end
-  end 
-  
-  end
+end 
 
 end
 
