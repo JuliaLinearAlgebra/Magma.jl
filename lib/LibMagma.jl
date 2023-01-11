@@ -1,5 +1,3 @@
-module LibMagma
-
 to_c_type(t::Type) = t
 to_c_type_pairs(va_list) = map(enumerate(to_c_type.(va_list))) do (ind, type)
     :(va_list[$ind]::$type)
@@ -34822,5 +34820,3 @@ const magmablas_clag2z = magmablas_clag2z_v1
 const magmablas_zlat2c = magmablas_zlat2c_v1
 
 const magmablas_clat2z = magmablas_clat2z_v1
-
-end # module

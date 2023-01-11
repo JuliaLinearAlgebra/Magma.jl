@@ -1,6 +1,7 @@
 module Magma
 
-using LibMagmaWrap
+using LibMagma
+
 # Write your package code here.
 
 struct MAGMAException <:Exception
@@ -19,6 +20,7 @@ function checkmagmaerror(ret::Int64)
     throw(ArgumentError("invalid argument $(-ret) to magma call"))
    else
     throw(MAGMAException(ret)) 
+   end
 end
 
 function checktranspose(trans::AbstractChar) 

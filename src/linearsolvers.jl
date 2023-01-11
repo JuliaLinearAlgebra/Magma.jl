@@ -1,4 +1,4 @@
-module LibMagmaWrap
+module LibMagma
 # Write your package code here.
 include("../lib/LibMagma.jl")
 
