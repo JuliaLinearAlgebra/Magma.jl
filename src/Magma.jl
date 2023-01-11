@@ -1,6 +1,6 @@
 module Magma
 
-using .LibMagma
+using LibMagmaWrap
 # Write your package code here.
 
 struct MAGMAException <:Exception
@@ -172,8 +172,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
         n=checksquare(A)
         lvecs = jobvl=='V'
         rvecs = jobvr =='V'
-        VL= similar(A,$elty,(n,lvecs ? n: 0))
-        VR=simialr(A,$elty,(n,rvecs ? n: 0))
+        VL= similar(A,$elty,(n,lvecs ? n : 0))
+        VR=simialr(A,$elty,(n,rvecs ? n : 0))
         is_complex = eltype(A) <:Complex
 
         if is_complex
@@ -201,7 +201,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             lwork=Int64(real(work[1]))
             resize!(work,lwork)
         end
-        is_complex ? (W,VL,VR): (WR,WI,VL,VR)
+        is_complex ? (W,VL,VR) : (WR,WI,VL,VR)
     end
 
     function gesvd!(jobu::AbstractChar,jobvt::AbstractChar,A::AbstractMatrix{$elty})
@@ -209,7 +209,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         minmn=min(m,n)
         S= similar(A,$relty,minmn)
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
-        VT=similar(A,$elty,jobvt == 'A' ? (n,n) :(jobvt =='S' ? (minmn,n) : (n,0)))
+        VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
@@ -250,7 +250,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         minmn=min(m,n)
         S= similar(A,$relty,minmn)
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
-        VT=similar(A,$elty,jobvt == 'A' ? (n,n) :(jobvt =='S' ? (minmn,n) : (n,0)))
+        VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
