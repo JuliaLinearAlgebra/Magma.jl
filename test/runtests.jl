@@ -1,7 +1,7 @@
-using Main.Magma
-using Main.Magma: gesv!,gels!
+using Magma
+using Magma: gesv!,gels!
 using Test
-using Main.LibMagma
+using LibMagma
 using LinearAlgebra,Random
 
 @testset "Magma.jl" begin
