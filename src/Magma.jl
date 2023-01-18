@@ -1,6 +1,6 @@
 module Magma
 
-using LibMagma
+using Main.LibMagma
 
 # Write your package code here.
 
@@ -34,16 +34,16 @@ function checkuplo(uplo::AbstractChar)
     if !(uplo == 'U' || uplo =='L')
         throw(ArgumentError("uplo argmument has to be U(upper) or L(lower), got $uplo"))
     end
-    uplo
+    return uplo
 end
 
 
 
 for(gels,gesv,elty) in (
-    (:magma_dgels,:magma_dgesv,:Float64),
-    (:magma_sgels,:magma_sgesv,:Float32),
-    (:magma_zgels,:magma_zgesv,:ComplexF64),
-    (:magma_cgels,:magma_cgesv,:ComplexF32)
+    (:magma_dgels,magma_dgesv,:Float64),
+    (:magma_sgels,magma_sgesv,:Float32),
+    (:magma_zgels,magma_zgesv,:ComplexF64),
+    (:magma_cgels,magma_cgesv,:ComplexF32)
 )
 @eval begin
     function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
@@ -59,8 +59,16 @@ for(gels,gesv,elty) in (
         idb=max(1,stride(B,2))
         work=Vector{$elty}(undef,1)
         lwork=Int64(-1)
-        gels((btrn ? 'T' : 'N'),m,n,nrhs,A,ida,B,idb,work,lwork,info)
-        checkmagmaerror(info[])
+        println(gels)
+        for i = 1:2
+            eval(gels)((btrn ? 112 : 111),m,n,nrhs,A,ida,B,idb,work,lwork,info)
+            checkmagmaerror(info[])
+            if i==1
+               lwork=Int64(real(work[1]))
+               resize!(work,lwork)
+            end
+
+        end
         return B
 
 
@@ -174,6 +182,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
         n=checksquare(A)
         lvecs = jobvl=='V'
         rvecs = jobvr =='V'
+        jobvl_int = jobvl == 'V' ? MagmaVec : MagmaNoVec
+        jobvr_int = jobvr == 'V' ? MagmaVec : MagmaNoVec
         VL= similar(A,$elty,(n,lvecs ? n : 0))
         VR=simialr(A,$elty,(n,rvecs ? n : 0))
         is_complex = eltype(A) <:Complex
@@ -193,9 +203,9 @@ for (geev,gesvd,gesdd,elty,relty) in (
         idvr=n
         for i = 1:2
             if is_complex
-                geev(jobvl,jobvr,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
+                geev(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
-                geev(jobvl,jobvr,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
+                geev(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
             end
         end
         checkmagmaerror(info[])
@@ -292,7 +302,7 @@ end
 
 end
 
-for(gebrd,getrf,gelqf,geqlf,geqrf,geqp3,elty,relty) in (
+for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
     (:magma_dgebrd,:magma_dgetrf,:magma_dgelqf,:magma_dgeqlf,:magma_dgeqrf,:Float64,:Float64),
     (:magma_sgebrd,:magma_sgetrf,:magma_sgelqf,:magma_sgeqlf,:magma_sgeqrf,:Float32,:Float32),
     (:magma_cgebrd,:magma_cgetrf,:magma_cgelqf,:magma_cgeqlf,:magma_cgeqrf,:ComplexF64,:Float64),

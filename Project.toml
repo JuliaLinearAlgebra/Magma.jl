@@ -3,6 +3,9 @@ uuid = "a4173727-5e3e-4567-b12d-2e3cf2fa2f28"
 authors = ["Yonatan Delelegn"]
 version = "0.1.0"
 
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
 [compat]
 julia = "1"
 
