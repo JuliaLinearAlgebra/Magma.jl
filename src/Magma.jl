@@ -2,18 +2,24 @@ module Magma
 
 using Main.LibMagma
 
+
 # Write your package code here.
 
 struct MAGMAException <:Exception
     info::Int64
 end
+macro funcexpr(funcname)
+    return Expr(:quote,Symbol(funcname))
+end
+
 function checksquare(A) 
     m,n =size(A)
     m==n || throw(DimensionMismatch("matrix is not square: dimensions are $((size(A)))"))
     return m
 end
 #checking if any magma error is generated
-function checkmagmaerror(ret::Int64)
+
+function checkmagmaerror(ret::Int32)
     if ret==0
         return 
    elseif ret <0
@@ -40,50 +46,52 @@ end
 
 
 for(gels,gesv,elty) in (
-    (:magma_dgels,magma_dgesv,:Float64),
-    (:magma_sgels,magma_sgesv,:Float32),
-    (:magma_zgels,magma_zgesv,:ComplexF64),
-    (:magma_cgels,magma_cgesv,:ComplexF32)
+    (:magma_dgels,:magma_dgesv,:Float64),
+    (:magma_sgels,:magma_sgesv,:Float32),
+    (:magma_zgels,:magma_zgesv,:ComplexF64),
+    (:magma_cgels,:magma_cgesv,:ComplexF32)
 )
+println(gels,"first")
 @eval begin
     function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
+        #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
         btrn= trans == 'T'
         if size(B,1) != (btrn ? n : m)
             throw(DimensionMismatch("matrix has dimensions ($m,$n), transposed: $btrn but the leading dimension of B is $(size(B,1))"))
         end
-        info =Ref{Int64}()
+        info =Ref{Int32}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        println(gels)
+        lwork=Int32(-1)
+        #println(gels)
         for i = 1:2
-            eval(gels)((btrn ? 112 : 111),m,n,nrhs,A,ida,B,idb,work,lwork,info)
-            checkmagmaerror(info[])
+            func=eval(@funcexpr($gels))
+            func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
+            #checkmagmaerror(info[])
             if i==1
-               lwork=Int64(real(work[1]))
+               lwork=ceil(Int32,real(work[1]))
                resize!(work,lwork)
             end
 
         end
         return B
-
-
     end
     function gesv!(A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
-        ipiv=similar(A,Int64,(m,n))
-        info =Ref{Int64}()
+        ipiv=similar(A,Int32,(m,n))
+        info =Ref{Int32}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        gesv(n,nrhs,A,ida,ipiv,B,idb,info)
+        func=eval(@funcexpr($gesv))
+        func(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -105,11 +113,12 @@ for(posv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        info =Ref{Int64}()
+        info =Ref{Int32}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        posv(uplo,n,nrhs,A,ida,B,idb,info)
+        func =eval(@funcexpr($posv))
+        func(uplo,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
 
     end
@@ -130,12 +139,13 @@ for (hesv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,Int32,n)
+        info =Ref{Int32}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        hesv(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func = eval(@funcexpr($hesv))
+        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -156,12 +166,13 @@ for (sysv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,Int32,n)
+        info =Ref{Int32}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        sysv(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func = eval(@funcexpr($sysv))
+        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -196,21 +207,23 @@ for (geev,gesvd,gesdd,elty,relty) in (
             WI=similar(A,$elty,n)
         end
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info=Ref{Int64}()
+        lwork=Int32(-1)
+        info=Ref{Int32}()
         ida=max(1,stride(A,2))
         idvl=n
         idvr=n
         for i = 1:2
             if is_complex
-                geev(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
+                func =eval(@funcexpr($geev))
+                func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
-                geev(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
+                func= eval(@funcexpr($geev))
+                func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
             end
         end
         checkmagmaerror(info[])
         if i==1
-            lwork=Int64(real(work[1]))
+            lwork=ceil(Int32,real(work[1]))
             resize!(work,lwork)
         end
         is_complex ? (W,VL,VR) : (WR,WI,VL,VR)
@@ -222,25 +235,30 @@ for (geev,gesvd,gesdd,elty,relty) in (
         S= similar(A,$relty,minmn)
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
         VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
+        jobu_c= jobu=='A' ? MagmaAllVec : (jobu=='S' ? MagmaSomeVec : (jobu=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        jobvt_c= jovt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
             rwork=Vector{$relty}(undef,5minmn)
         end
-        lwork=Int64(-1)
-        info=Ref{Int64}()
+        lwork=Int32(-1)
+        info=Ref{Int32}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
         for i in 1:2
             if is_complex
-                gesvd(jobu,jobvt,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
+                func =eval(@funcexpr($gesvd))
+                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
             else
-                gesvd(jobu,jobvt,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
+
+                func=eval(@funcexpr($gesvd))
+                func(jobu_t,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -263,25 +281,29 @@ for (geev,gesvd,gesdd,elty,relty) in (
         S= similar(A,$relty,minmn)
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
         VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
+        jobu_c= jobu=='A' ? MagmaAllVec : (jobu=='S' ? MagmaSomeVec : (jobu=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        jobvt_c= jovt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
             rwork=Vector{$relty}(undef,5minmn)
         end
-        lwork=Int64(-1)
-        info=Ref{Int64}()
+        lwork=Int32(-1)
+        info=Ref{Int32}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
         for i in 1:2
             if is_complex
-                gesdd(jobu,jobvt,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
+                func = eval(@funcexpr($gesdd))
+                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
             else
-                gesdd(jobu,jobvt,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
+                func=eval(@funcexpr($gesdd))
+                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -317,15 +339,16 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tauq=similar(A,$elty,minmn)
         taup=similar(A,$elty,minmn)
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info  = Ref{Int64}()
+        lwork=Int32(-1)
+        info  = Ref{Int32}()
         ida=max(1,stride(A,2))
 
         for i= 1:2
-            gebrd(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
+            func=eval(@funcexpr($gebrd))
+            func=(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -337,9 +360,10 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         m,n=size(A)
         minmn=min(m,n)
         ipiv=similar(A,Int64,minmn)
-        info  = Ref{Int64}()
+        info  = Ref{Int32}()
         ida=max(1,stride(A,2))
-        getrf(m,n,A,ida,ipiv,info)
+        func=eval(@funcexpr($getrf))
+        func(m,n,A,ida,ipiv,info)
         checkmagmaerror(info[])
         return A,ipiv,info[]
     end
@@ -350,13 +374,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=Int32(-1)
+        info = Ref{Int32}()
         for i= 1:2
-            gelqf(m,n,A,ida,tau,work,lwork,info)
+            func=eval(@funcexpr($gelqf))
+            func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -370,13 +395,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=Int32(-1)
+        info = Ref{Int32}()
         for i= 1:2
-            geqlf(m,n,A,ida,tau,work,lwork,info)
+            func=eval(@funcexpr($geqlf))
+            func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -390,13 +416,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=Int32(-1)
+        info = Ref{Int32}()
         for i= 1:2
-            geqrf(m,n,A,ida,tau,work,lwork,info)
+            func=eval(@funcexpr($geqrf))
+            func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=Int64(real(work[1]))
+                lwork=ceil(Int32,real(work[1]))
                 resize!(work,lwork)
             end
 

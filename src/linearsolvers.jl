@@ -1,5 +1,9 @@
 module LibMagma
 # Write your package code here.
+#using libblastrampoline_jll
+const libmagma="/home/yonatanwesen/magma-2.7.0/lib/libmagma.so"
+#const liblapack = libblastrampoline
+
 export magma_init
 export magma_finalize
 include("../lib/LibMagma.jl")
@@ -11,5 +15,4 @@ for name in names(@__MODULE__;all=true), prefix in PREFIXES
         @eval export $name
     end
 end
-
 end
