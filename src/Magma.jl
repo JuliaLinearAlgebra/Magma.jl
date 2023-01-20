@@ -1,7 +1,6 @@
 module Magma
-
-using Main.LibMagma
-
+include("linearsolvers.jl")
+using .LibMagma
 
 # Write your package code here.
 
