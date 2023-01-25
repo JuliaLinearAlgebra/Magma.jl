@@ -1,5 +1,5 @@
-using Main.Magma
-using Main.Magma: gesv!,gels!,magma_init,magma_finalize
+using Magma
+using Magma: gesv!,gels!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
