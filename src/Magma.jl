@@ -56,7 +56,7 @@ for(gels,gesv,elty) in (
 )
 #println(gels,"first")
 @eval begin
-    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
+    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
@@ -93,12 +93,12 @@ for(gels,gesv,elty) in (
         end
         return F, subsetrows(B, B, k), ssr
     end
-    function gesv!(A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
+    function gesv!(A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
-        ipiv=similar(Matrix(A),Int64,n)
+        ipiv=similar(A,Int64,n)
         info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
@@ -125,7 +125,7 @@ for(posv,elty) in (
     function posv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
-        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
+        uplo_magma= uplo == 'U' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
@@ -136,6 +136,7 @@ for(posv,elty) in (
         func =eval(@funcexpr($posv))
         func(uplo_magma,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
+        return A,B
 
     end
 
@@ -152,7 +153,7 @@ for (hesv,elty) in (
     function hesv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
-        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
+        uplo_magma= uplo == 'U' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
@@ -180,7 +181,7 @@ for (sysv,elty) in (
     function sysv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
-        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
+        uplo_magma= uplo == 'U' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
