@@ -1,11 +1,11 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
-import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!
+import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, sysv_rook!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -104,6 +104,24 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
                 #println("inside the for loop")
                 @test Array(actual_res[i]) ≈ Array(expected_res[i])
             end 
+        end
+    end
+
+    @testset "sysv" begin
+        @testset for elty in (Float32,Float64)
+            A = rand(elty,10,10)
+            A = A + transpose(A)
+            X = rand(elty,10)
+            A_cop = copy(A)
+            X_cop = copy(X)
+            expected_res= A \ X
+            magma_init()
+            #println("initiated magma")
+            # we seg fault in gesv! call
+            actual_res= sysv!('U',A_cop,X_cop)
+            #println("after caling the function gesv")
+            magma_finalize()
+            actual_res[1] ≈ expected_res
         end
     end
 
