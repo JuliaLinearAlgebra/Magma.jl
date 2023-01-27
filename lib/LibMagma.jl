@@ -3,7 +3,7 @@ to_c_type_pairs(va_list) = map(enumerate(to_c_type.(va_list))) do (ind, type)
     :(va_list[$ind]::$type)
 end
 
-const magma_int_t = Int64
+const magma_int_t = Int
 
 """
 MIC and CUDA use regular pointers on GPU
@@ -33785,6 +33785,8 @@ function magmablasGetQueue()
     ccall((:magmablasGetQueue, libmagma), magma_queue_t, ())
 end
 
+const MAGMA_CUDA_ARCH_MIN = 600
+
 const MAGMA_API = 2
 
 #= const magmaCfma = cuCfma
@@ -34820,3 +34822,4 @@ const magmablas_clag2z = magmablas_clag2z_v1
 const magmablas_zlat2c = magmablas_zlat2c_v1
 
 const magmablas_clat2z = magmablas_clat2z_v1
+

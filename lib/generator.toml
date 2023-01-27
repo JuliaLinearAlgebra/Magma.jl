@@ -1,6 +1,5 @@
 [general]
 library_name = "libmagma"
-module_name = "LibMagma"
 output_file_path = "./LibMagma.jl"
 use_julia_native_enum_type = true
 extract_c_comment_style = "raw"

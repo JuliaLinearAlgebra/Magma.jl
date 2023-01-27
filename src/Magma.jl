@@ -79,13 +79,13 @@ for(gels,gesv,elty) in (
         end
         return B
     end
-    function gesv!(A::Array{$elty},B::Array{$elty})
+    function gesv!(A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
-        ipiv=similar(Matrix(A),Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,Int,n)
+        info =Ref{Int}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))

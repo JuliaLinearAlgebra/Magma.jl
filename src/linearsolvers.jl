@@ -1,8 +1,8 @@
 module LibMagma
 # Write your package code here.
 #using libblastrampoline_jll
-using MAGMA_jll
-const libmagma=MAGMA_jll.libmagma_path
+#using MAGMA_jll
+const libmagma="/home/yonatanwesen/magma-2.7.0/lib/libmagma.so"
 #const liblapack = libblastrampoline
 
 export magma_init
