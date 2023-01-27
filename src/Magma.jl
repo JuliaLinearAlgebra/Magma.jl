@@ -215,14 +215,14 @@ for (geev,gesvd,gesdd,elty,relty) in (
         jobvl_int = jobvl == 'V' ? MagmaVec : MagmaNoVec
         jobvr_int = jobvr == 'V' ? MagmaVec : MagmaNoVec
         VL= similar(A,$elty,(n,lvecs ? n : 0))
-        VR=simialr(A,$elty,(n,rvecs ? n : 0))
+        VR=similar(A,$elty,(n,rvecs ? n : 0))
         is_complex = eltype(A) <:Complex
 
         if is_complex
             W=similar(A,$elty,n)
             rwork=similar(A,$relty,2n)
         else
-            WR=simialr(A,$elty,n)
+            WR=similar(A,$elty,n)
             WI=similar(A,$elty,n)
         end
         work=Vector{$elty}(undef,1)
@@ -231,20 +231,37 @@ for (geev,gesvd,gesdd,elty,relty) in (
         ida=max(1,stride(A,2))
         idvl=n
         idvr=n
-        for i = 1:2
+        if is_complex
+            func =eval(@funcexpr($geev))
+            #println("I am here")
+            func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
+        else
+            func= eval(@funcexpr($geev))
+            func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
+        end
+        checkmagmaerror(info[])
+        #=
+        we might be able to get away with just one call to geev but we might need more testing to confirm
+        for i = 1:1
             if is_complex
                 func =eval(@funcexpr($geev))
+                println("I am here")
                 func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
                 func= eval(@funcexpr($geev))
                 func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
             end
-        end
-        checkmagmaerror(info[])
-        if i==1
-            lwork=ceil(Int64,real(work[1]))
-            resize!(work,lwork)
-        end
+            checkmagmaerror(info[])
+            println("before ceiling")
+            println(lwork)
+            if i==1
+                lwork=ceil(Int64,real(work[1]))
+                resize!(work,lwork)
+            end
+            println("after ceiling")
+            println(lwork)
+        end=#
+
         is_complex ? (W,VL,VR) : (WR,WI,VL,VR)
     end
 
