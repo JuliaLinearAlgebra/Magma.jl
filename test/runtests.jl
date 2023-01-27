@@ -1,11 +1,11 @@
 using Magma
-using Magma: gesv!,gels!,posv!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
-import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!
+import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -81,6 +81,26 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!
             #println("after caling the function gesv")
             magma_finalize()
             for i in 1:2
+                #println("inside the for loop")
+                @test Array(actual_res[i]) ≈ Array(expected_res[i])
+            end 
+        end
+    end
+    @testset "hesv" begin
+        @testset for elty in (ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A = A + A'
+            X = rand(elty,10)
+            A_cop = copy(A)
+            X_cop = copy(X)
+            expected_res=lhesv!('U',A,X)
+            magma_init()
+            #println("initiated magma")
+            # we seg fault in gesv! call
+            actual_res= hesv!('U',A_cop,X_cop)
+            #println("after caling the function gesv")
+            magma_finalize()
+            for i in 1:3
                 #println("inside the for loop")
                 @test Array(actual_res[i]) ≈ Array(expected_res[i])
             end 
