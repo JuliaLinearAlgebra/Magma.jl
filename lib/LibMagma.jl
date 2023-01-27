@@ -3,7 +3,7 @@ to_c_type_pairs(va_list) = map(enumerate(to_c_type.(va_list))) do (ind, type)
     :(va_list[$ind]::$type)
 end
 
-const magma_int_t = Cint
+const magma_int_t = Int64
 
 """
 MIC and CUDA use regular pointers on GPU

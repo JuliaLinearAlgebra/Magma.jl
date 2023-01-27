@@ -1,6 +1,9 @@
 module Magma
+using LinearAlgebra: triu, tril
+
 include("linearsolvers.jl")
 using .LibMagma
+
 
 # Write your package code here.
 
@@ -18,7 +21,7 @@ function checksquare(A)
 end
 #checking if any magma error is generated
 
-function checkmagmaerror(ret::Int32)
+function checkmagmaerror(ret::Int64)
     if ret==0
         return 
    elseif ret <0
@@ -42,7 +45,8 @@ function checkuplo(uplo::AbstractChar)
     return uplo
 end
 
-
+subsetrows(X::AbstractVector, Y::AbstractArray, k) = Y[1:k]
+subsetrows(X::AbstractMatrix, Y::AbstractArray, k) = Y[1:k, :]
 
 for(gels,gesv,elty) in (
     (:magma_dgels,:magma_dgesv,:Float64),
@@ -50,46 +54,58 @@ for(gels,gesv,elty) in (
     (:magma_zgels,:magma_zgesv,:ComplexF64),
     (:magma_cgels,:magma_cgesv,:ComplexF32)
 )
-println(gels,"first")
+#println(gels,"first")
 @eval begin
-    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
+    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
         #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
-        btrn= trans == 'T'
+        btrn= trans == 'N'
         if size(B,1) != (btrn ? n : m)
             throw(DimensionMismatch("matrix has dimensions ($m,$n), transposed: $btrn but the leading dimension of B is $(size(B,1))"))
         end
-        info =Ref{Int32}()
+        info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
+        lwork=Int64(-1)
         #println(gels)
         for i = 1:2
             func=eval(@funcexpr($gels))
             func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
-            #checkmagmaerror(info[])
+            checkmagmaerror(info[])
             if i==1
-               lwork=ceil(Int32,real(work[1]))
+               lwork=ceil(Int64,real(work[1]))
                resize!(work,lwork)
             end
 
         end
-        return B
+        k   = min(m, n)
+        F   = m < n ? tril(A[1:k, 1:k]) : triu(A[1:k, 1:k])
+        ssr = Vector{$elty}(undef, size(B, 2))
+        for i = 1:size(B,2)
+            x = zero($elty)
+            for j = k+1:size(B,1)
+                x += abs2(B[j,i])
+            end
+            ssr[i] = x
+        end
+        return F, subsetrows(B, B, k), ssr
     end
-    function gesv!(A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
+    function gesv!(A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
-        ipiv=similar(A,Int32,(m,n))
-        info =Ref{Int32}()
+        ipiv=similar(Matrix(A),Int64,n)
+        info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func=eval(@funcexpr($gesv))
+        #println(func)
+        #segfault happens in the following func call. func evaluates to magma_sgesv
         func(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
@@ -109,15 +125,16 @@ for(posv,elty) in (
     function posv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        info =Ref{Int32}()
+        info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func =eval(@funcexpr($posv))
-        func(uplo,n,nrhs,A,ida,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
 
     end
@@ -135,16 +152,17 @@ for (hesv,elty) in (
     function hesv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int32,n)
-        info =Ref{Int32}()
+        ipiv=similar(A,Int64,n)
+        info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func = eval(@funcexpr($hesv))
-        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -162,16 +180,17 @@ for (sysv,elty) in (
     function sysv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int32,n)
-        info =Ref{Int32}()
+        ipiv=similar(A,Int64,n)
+        info =Ref{Int64}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func = eval(@funcexpr($sysv))
-        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -206,8 +225,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
             WI=similar(A,$elty,n)
         end
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
-        info=Ref{Int32}()
+        lwork=Int64(-1)
+        info=Ref{Int64}()
         ida=max(1,stride(A,2))
         idvl=n
         idvr=n
@@ -222,7 +241,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         end
         checkmagmaerror(info[])
         if i==1
-            lwork=ceil(Int32,real(work[1]))
+            lwork=ceil(Int64,real(work[1]))
             resize!(work,lwork)
         end
         is_complex ? (W,VL,VR) : (WR,WI,VL,VR)
@@ -241,8 +260,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
         if is_complex
             rwork=Vector{$relty}(undef,5minmn)
         end
-        lwork=Int32(-1)
-        info=Ref{Int32}()
+        lwork=Int64(-1)
+        info=Ref{Int64}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
@@ -257,7 +276,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -287,8 +306,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
         if is_complex
             rwork=Vector{$relty}(undef,5minmn)
         end
-        lwork=Int32(-1)
-        info=Ref{Int32}()
+        lwork=Int64(-1)
+        info=Ref{Int64}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
@@ -302,7 +321,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -338,8 +357,8 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tauq=similar(A,$elty,minmn)
         taup=similar(A,$elty,minmn)
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
-        info  = Ref{Int32}()
+        lwork=Int64(-1)
+        info  = Ref{Int64}()
         ida=max(1,stride(A,2))
 
         for i= 1:2
@@ -347,7 +366,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
             func=(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -359,7 +378,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         m,n=size(A)
         minmn=min(m,n)
         ipiv=similar(A,Int64,minmn)
-        info  = Ref{Int32}()
+        info  = Ref{Int64}()
         ida=max(1,stride(A,2))
         func=eval(@funcexpr($getrf))
         func(m,n,A,ida,ipiv,info)
@@ -373,14 +392,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
-        info = Ref{Int32}()
+        lwork=Int64(-1)
+        info = Ref{Int64}()
         for i= 1:2
             func=eval(@funcexpr($gelqf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -394,14 +413,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
-        info = Ref{Int32}()
+        lwork=Int64(-1)
+        info = Ref{Int64}()
         for i= 1:2
             func=eval(@funcexpr($geqlf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -415,14 +434,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int32(-1)
-        info = Ref{Int32}()
+        lwork=Int64(-1)
+        info = Ref{Int64}()
         for i= 1:2
             func=eval(@funcexpr($geqrf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int32,real(work[1]))
+                lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
