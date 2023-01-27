@@ -1,6 +1,9 @@
 module Magma
+using LinearAlgebra: triu, tril
+
 include("linearsolvers.jl")
 using .LibMagma
+
 
 # Write your package code here.
 
@@ -42,7 +45,8 @@ function checkuplo(uplo::AbstractChar)
     return uplo
 end
 
-
+subsetrows(X::AbstractVector, Y::AbstractArray, k) = Y[1:k]
+subsetrows(X::AbstractMatrix, Y::AbstractArray, k) = Y[1:k, :]
 
 for(gels,gesv,elty) in (
     (:magma_dgels,:magma_dgesv,:Float64),
@@ -52,11 +56,11 @@ for(gels,gesv,elty) in (
 )
 #println(gels,"first")
 @eval begin
-    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
+    function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
         #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
-        btrn= trans == 'T'
+        btrn= trans == 'N'
         if size(B,1) != (btrn ? n : m)
             throw(DimensionMismatch("matrix has dimensions ($m,$n), transposed: $btrn but the leading dimension of B is $(size(B,1))"))
         end
@@ -70,16 +74,26 @@ for(gels,gesv,elty) in (
         for i = 1:2
             func=eval(@funcexpr($gels))
             func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
-            #checkmagmaerror(info[])
+            checkmagmaerror(info[])
             if i==1
                lwork=ceil(Int64,real(work[1]))
                resize!(work,lwork)
             end
 
         end
-        return B
+        k   = min(m, n)
+        F   = m < n ? tril(A[1:k, 1:k]) : triu(A[1:k, 1:k])
+        ssr = Vector{$elty}(undef, size(B, 2))
+        for i = 1:size(B,2)
+            x = zero($elty)
+            for j = k+1:size(B,1)
+                x += abs2(B[j,i])
+            end
+            ssr[i] = x
+        end
+        return F, subsetrows(B, B, k), ssr
     end
-    function gesv!(A::Array{$elty},B::Array{$elty})
+    function gesv!(A::AbstractMatrix{$elty},B::AbstractMatrix{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
@@ -90,7 +104,7 @@ for(gels,gesv,elty) in (
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func=eval(@funcexpr($gesv))
-        println(func)
+        #println(func)
         #segfault happens in the following func call. func evaluates to magma_sgesv
         func(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
@@ -111,6 +125,7 @@ for(posv,elty) in (
     function posv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
@@ -119,7 +134,7 @@ for(posv,elty) in (
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func =eval(@funcexpr($posv))
-        func(uplo,n,nrhs,A,ida,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
 
     end
@@ -137,6 +152,7 @@ for (hesv,elty) in (
     function hesv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
@@ -146,7 +162,7 @@ for (hesv,elty) in (
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func = eval(@funcexpr($hesv))
-        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -164,6 +180,7 @@ for (sysv,elty) in (
     function sysv!(uplo::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
         n=checksquare(A)
         checkuplo(uplo)
+        uplo_magma= uplo == 'N' ? MagmaUpper : MagmaLower
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
@@ -173,7 +190,7 @@ for (sysv,elty) in (
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func = eval(@funcexpr($sysv))
-        func(uplo,n,nrhs,A,ida,ipiv,B,idb,info)
+        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
