@@ -1,11 +1,11 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
-import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!
+import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -140,8 +140,22 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
             end
         end
     end
-
-    
+   
+    @testset "gesvd" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,5)
+            A_cop=copy(A)
+            expect_res= lgesvd!('A','A',A)
+            
+            magma_init()
+            actual_res=gesvd!('A','A',A_cop)
+            magma_finalize()
+            #println("yoni")
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+        end
+    end
 
 
 end

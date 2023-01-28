@@ -272,7 +272,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
         VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
         jobu_c= jobu=='A' ? MagmaAllVec : (jobu=='S' ? MagmaSomeVec : (jobu=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
-        jobvt_c= jovt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        jobvt_c= jobvt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
@@ -286,11 +286,11 @@ for (geev,gesvd,gesdd,elty,relty) in (
         for i in 1:2
             if is_complex
                 func =eval(@funcexpr($gesvd))
-                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
+                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,info)
             else
 
                 func=eval(@funcexpr($gesvd))
-                func(jobu_t,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
+                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
             end
             checkmagmaerror(info[])
             if i==1
@@ -318,7 +318,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
         VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
         jobu_c= jobu=='A' ? MagmaAllVec : (jobu=='S' ? MagmaSomeVec : (jobu=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
-        jobvt_c= jovt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        jobvt_c= jobvt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
