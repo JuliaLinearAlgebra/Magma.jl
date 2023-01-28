@@ -121,12 +121,12 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
             actual_res= sysv!('U',A_cop,X_cop)
             #println("after caling the function gesv")
             magma_finalize()
-            actual_res[1] ≈ expected_res
+            @test actual_res[1] ≈ expected_res
         end
     end
 
     @testset "geev!" begin
-        @testset for elty in (ComplexF32,ComplexF64)
+        @testset for elty in (Float32,Float64)
             A = rand(elty,10,10)
             A_cop=copy(A)
             expect_res= lgeev!('N','V',A)
@@ -134,9 +134,9 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
             magma_init()
             actual_res=geev!('N','V',A_cop)
             magma_finalize()
-
+            #println("yoni")
             for i in 1:length(actual_res)
-                Array(actual_res[i]) ≈ Array(expect_res[i])
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
         end
     end

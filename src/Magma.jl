@@ -231,6 +231,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
         ida=max(1,stride(A,2))
         idvl=n
         idvr=n
+        #=
         if is_complex
             func =eval(@funcexpr($geev))
             #println("I am here")
@@ -239,28 +240,27 @@ for (geev,gesvd,gesdd,elty,relty) in (
             func= eval(@funcexpr($geev))
             func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
         end
-        checkmagmaerror(info[])
-        #=
-        we might be able to get away with just one call to geev but we might need more testing to confirm
-        for i = 1:1
+        checkmagmaerror(info[])=#
+        #we might be able to get away with just one call to geev but we might need more testing to confirm
+        for i = 1:2
             if is_complex
                 func =eval(@funcexpr($geev))
-                println("I am here")
+                #println("I am here")
                 func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
                 func= eval(@funcexpr($geev))
                 func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
             end
             checkmagmaerror(info[])
-            println("before ceiling")
-            println(lwork)
+            #println("before ceiling")
+            #println(lwork)
             if i==1
                 lwork=ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
-            println("after ceiling")
-            println(lwork)
-        end=#
+            #println("after ceiling")
+            #println(lwork)
+        end
 
         is_complex ? (W,VL,VR) : (WR,WI,VL,VR)
     end
