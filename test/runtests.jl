@@ -140,7 +140,20 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
             end
         end
     end
-   
+    @testset "gesvd" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,5)
+            A_cop=copy(A)
+            expect_res= lgesvd!('A','A',A)
+            
+            magma_init()
+            actual_res=gesvd!('A','A',A_cop)
+            magma_finalize()
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+        end
+    end
     @testset "gesdd" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
             A = rand(elty,10,5)
@@ -154,10 +167,8 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
         end
-
-        
-
     end
+
 
 
 end
