@@ -126,13 +126,13 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
     end
 
     @testset "geev!" begin
-        @testset for elty in (Float32,Float64)
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
             A = rand(elty,10,10)
             A_cop=copy(A)
-            expect_res= lgeev!('N','V',A)
+            expect_res= lgeev!('V','V',A)
             
             magma_init()
-            actual_res=geev!('N','V',A_cop)
+            actual_res=geev!('V','V',A_cop)
             magma_finalize()
             #println("yoni")
             for i in 1:length(actual_res)

@@ -203,8 +203,8 @@ end
 for (geev,gesvd,gesdd,elty,relty) in (
     (:magma_dgeev,:magma_dgesvd,:magma_dgesdd,:Float64,:Float64),
     (:magma_sgeev,:magma_sgesvd,:magma_sgesdd,:Float32,:Float32),
-    (:magma_cgeev,:magma_cgesvd,:magma_cgesdd,:ComplexF64,:Float64),
-    (:magma_zgeev,:magma_zgesvd,:magma_zgesdd,:ComplexF32,:Float32)
+    (:magma_cgeev,:magma_cgesvd,:magma_cgesdd,:ComplexF32,:Float32),
+    (:magma_zgeev,:magma_zgesvd,:magma_zgesdd,:ComplexF64,:Float64)
 )
 
 @eval begin
@@ -363,8 +363,8 @@ end
 for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
     (:magma_dgebrd,:magma_dgetrf,:magma_dgelqf,:magma_dgeqlf,:magma_dgeqrf,:Float64,:Float64),
     (:magma_sgebrd,:magma_sgetrf,:magma_sgelqf,:magma_sgeqlf,:magma_sgeqrf,:Float32,:Float32),
-    (:magma_cgebrd,:magma_cgetrf,:magma_cgelqf,:magma_cgeqlf,:magma_cgeqrf,:ComplexF64,:Float64),
-    (:magma_zgebrd,:magma_zgetrf,:magma_zgelqf,:magma_zgeqlf,:magma_zgeqrf,:ComplexF32,:Float32)
+    (:magma_cgebrd,:magma_cgetrf,:magma_cgelqf,:magma_cgeqlf,:magma_cgeqrf,:ComplexF32,:Float32),
+    (:magma_zgebrd,:magma_zgetrf,:magma_zgelqf,:magma_zgeqlf,:magma_zgeqrf,:ComplexF64,:Float64)
 )
  @eval begin
     function gebrd!(A::AbstractMatrix{$elty})
