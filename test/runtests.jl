@@ -1,11 +1,12 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
-import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!
+import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
+getrf! as lgetrf!, geqrf! as lgeqrf!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -164,6 +165,33 @@ import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, h
             actual_res=gesdd!('A',A_cop)
             magma_finalize()
             for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+        end
+    end
+
+    @testset "getrf" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_cop=copy(A)
+            expect_res= lgetrf!(A)
+            magma_init()
+            actual_res=getrf!(A)
+            magma_finalize()
+            for i in 1:1
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+        end
+    end
+    @testset "geqrf" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_cop=copy(A)
+            expect_res= lgeqrf!(A)
+            magma_init()
+            actual_res=geqrf!(A)
+            magma_finalize()
+            for i in 1:1
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
         end

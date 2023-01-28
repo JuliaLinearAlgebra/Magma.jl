@@ -473,7 +473,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork = ceil(Int64,real(work[1]))
                 resize!(work,lwork)
             end
 
