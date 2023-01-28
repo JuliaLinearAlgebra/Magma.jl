@@ -311,20 +311,31 @@ for (geev,gesvd,gesdd,elty,relty) in (
 
     end
 
-    function gesdd!(jobu::AbstractChar,jobvt::AbstractChar,A::AbstractMatrix{$elty})
-        m,n = size(A)
-        minmn=min(m,n)
+    function gesdd!(jobz::AbstractChar,A::AbstractMatrix{$elty})
+        m, n   = size(A)
+        minmn  = min(m, n)
         S= similar(A,$relty,minmn)
-        U=similar(A,$elty,jobu=='A' ? (m,m) : (jobu =='S' ? (m,minmn) : (m,0)))
-        VT=similar(A,$elty,jobvt == 'A' ? (n,n) : (jobvt =='S' ? (minmn,n) : (n,0)))
-        jobu_c= jobu=='A' ? MagmaAllVec : (jobu=='S' ? MagmaSomeVec : (jobu=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
-        jobvt_c= jobvt=='A' ? MagmaAllVec : (jobvt=='S' ? MagmaSomeVec : (jobvt=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        jobz_m = jobz =='A' ? MagmaAllVec : (jobz=='S' ? MagmaSomeVec : (jobz=='O' ?  MagmaOverwriteVec : MagmaNoVec ))
+        if jobz == 'A'
+            U  = similar(A, $elty, (m, m))
+            VT = similar(A, $elty, (n, n))
+        elseif jobz == 'S'
+            U  = similar(A, $elty, (m, minmn))
+            VT = similar(A, $elty, (minmn, n))
+        elseif jobz == 'O'
+            U  = similar(A, $elty, (m, m >= n ? 0 : m))
+            VT = similar(A, $elty, (n, m >= n ? n : 0))
+        else
+            U  = similar(A, $elty, (m, 0))
+            VT = similar(A, $elty, (n, 0))
+        end
         work=Vector{$elty}(undef,1)
         is_complex = eltype(A) <:Complex
         if is_complex
-            rwork=Vector{$relty}(undef,5minmn)
+            rwork = Vector{$relty}(undef, jobz == 'N' ? 7*minmn : minmn*max(5*minmn+7, 2*max(m,n)+2*minmn+1))
         end
         lwork=Int64(-1)
+        iwork  = Vector{Int64}(undef, 8*minmn)
         info=Ref{Int64}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
@@ -332,23 +343,26 @@ for (geev,gesvd,gesdd,elty,relty) in (
         for i in 1:2
             if is_complex
                 func = eval(@funcexpr($gesdd))
-                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idvt,work,lwork,rwork,info)
+                func(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,iwork,info)
             else
                 func=eval(@funcexpr($gesdd))
-                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
+                func(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,iwork,info)
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                #workaround truncating doubles
+                lwork=round(Int64,nextfloat(real(work[1])))
                 resize!(work,lwork)
             end
 
         end
 
-        if jobu =='O'
-            return (A,S,VT)
-        elseif jobvt =='O'
-            return (U,S,A)
+        if jobz =='O'
+            if m>=n
+                return (A,S,VT)
+            else
+                return (U,S,A)
+            end
         else
             return (U,S,VT)
         end
