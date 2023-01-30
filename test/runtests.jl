@@ -1,12 +1,12 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
 import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
-getrf! as lgetrf!, geqrf! as lgeqrf!
+getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -173,14 +173,12 @@ getrf! as lgetrf!, geqrf! as lgeqrf!
     @testset "getrf" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
             A = rand(elty,10,10)
-            A_cop=copy(A)
-            expect_res= lgetrf!(A)
+            iA = inv(A)
             magma_init()
-            actual_res=getrf!(A)
+            A, ipiv = getrf!(A)
             magma_finalize()
-            for i in 1:1
-                @test Array(actual_res[i]) ≈ Array(expect_res[i])
-            end
+            A = lgetri!(A, ipiv)
+            @test A ≈ iA
         end
     end
     @testset "geqrf" begin
@@ -189,9 +187,26 @@ getrf! as lgetrf!, geqrf! as lgeqrf!
             A_cop=copy(A)
             expect_res= lgeqrf!(A)
             magma_init()
-            actual_res=geqrf!(A)
+            actual_res=geqrf!(A_cop)
             magma_finalize()
-            for i in 1:1
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+
+            
+        end
+    end
+
+    @testset "gebrd" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64) 
+            A = rand(elty,10,10)
+            A_cop=copy(A)
+            expect_res= lgebrd!(A)
+            #idx=[1,4,5]
+            magma_init()
+            actual_res=gebrd!(A_cop)
+            magma_finalize()
+            for i in 1:length(actual_res)
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
         end
