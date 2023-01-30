@@ -1,12 +1,12 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,magma_init,magma_finalize
 using Test
 using Random
 #using libstramopil
 #using Main.LibMagma
 using LinearAlgebra
 import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
-getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!
+getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf! as lgeqlf!, gelqf! as lgelqf!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -181,6 +181,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!
             @test A ≈ iA
         end
     end
+
     @testset "geqrf" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
             A = rand(elty,10,10)
@@ -209,6 +210,34 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!
             for i in 1:length(actual_res)
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
+        end
+    end
+
+    @testset "geqlf" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_cop=copy(A)
+            expect_res= lgeqlf!(A)
+            magma_init()
+            actual_res=geqlf!(A_cop)
+            magma_finalize()
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end    
+        end
+    end
+
+    @testset "gelqf" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_cop=copy(A)
+            expect_res= lgelqf!(A)
+            magma_init()
+            actual_res=gelqf!(A_cop)
+            magma_finalize()
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end    
         end
     end
 
