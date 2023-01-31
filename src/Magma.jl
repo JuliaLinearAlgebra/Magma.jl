@@ -1,6 +1,7 @@
 module Magma
 using CUDA
 using LinearAlgebra: triu, tril
+import LinearAlgebra: BlasInt
 
 include("linearsolvers.jl")
 using .LibMagma
@@ -9,7 +10,7 @@ using .LibMagma
 # Write your package code here.
 
 struct MAGMAException <:Exception
-    info::Int64
+    info::BlasInt
 end
 macro funcexpr(funcname)
     return Expr(:quote,Symbol(funcname))
@@ -22,7 +23,7 @@ function checksquare(A)
 end
 #checking if any magma error is generated
 
-function checkmagmaerror(ret::Int64)
+function checkmagmaerror(ret::BlasInt)
     if ret==0
         return 
    elseif ret <0
@@ -65,19 +66,19 @@ for(gels,gesv,elty) in (
         if size(B,1) != (btrn ? n : m)
             throw(DimensionMismatch("matrix has dimensions ($m,$n), transposed: $btrn but the leading dimension of B is $(size(B,1))"))
         end
-        info =Ref{Int64}()
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
+        lwork=BlasInt(-1)
         #println(gels)
         for i = 1:2
             func=eval(@funcexpr($gels))
             func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-               lwork=ceil(Int64,real(work[1]))
+               lwork=ceil(BlasInt,real(work[1]))
                resize!(work,lwork)
             end
 
@@ -99,8 +100,8 @@ for(gels,gesv,elty) in (
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,BlasInt,n)
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
@@ -124,10 +125,10 @@ for(gesv,elty) in (
     function gesv!(A::CuArray{$elty},B::CuArray{$elty})
         n=checksquare(A)
         if n != size(B,1)
-            throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
+            throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but needs $n"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,BlasInt,n)
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
@@ -157,7 +158,7 @@ for(posv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        info =Ref{Int64}()
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
@@ -185,8 +186,8 @@ for (hesv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,BlasInt,n)
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
@@ -213,8 +214,8 @@ for (sysv,elty) in (
         if n !=size(B,1)
             throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
         end
-        ipiv=similar(A,Int64,n)
-        info =Ref{Int64}()
+        ipiv=similar(A,BlasInt,n)
+        info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
@@ -254,8 +255,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
             WI=similar(A,$elty,n)
         end
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info=Ref{Int64}()
+        lwork=BlasInt(-1)
+        info=Ref{BlasInt}()
         ida=max(1,stride(A,2))
         idvl=n
         idvr=n
@@ -283,7 +284,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             #println("before ceiling")
             #println(lwork)
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork=ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
             #println("after ceiling")
@@ -306,8 +307,8 @@ for (geev,gesvd,gesdd,elty,relty) in (
         if is_complex
             rwork=Vector{$relty}(undef,5minmn)
         end
-        lwork=Int64(-1)
-        info=Ref{Int64}()
+        lwork=BlasInt(-1)
+        info=Ref{BlasInt}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
@@ -322,7 +323,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             end
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork=ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -362,9 +363,9 @@ for (geev,gesvd,gesdd,elty,relty) in (
         if is_complex
             rwork = Vector{$relty}(undef, jobz == 'N' ? 7*minmn : minmn*max(5*minmn+7, 2*max(m,n)+2*minmn+1))
         end
-        lwork=Int64(-1)
-        iwork  = Vector{Int64}(undef, 8*minmn)
-        info=Ref{Int64}()
+        lwork=BlasInt(-1)
+        iwork  = Vector{BlasInt}(undef, 8*minmn)
+        info=Ref{BlasInt}()
         ida=max(1,stride(A,2))
         idu=max(1,stride(U,2))
         idv=max(1,stride(VT,2))
@@ -379,7 +380,7 @@ for (geev,gesvd,gesdd,elty,relty) in (
             checkmagmaerror(info[])
             if i==1
                 #workaround truncating doubles
-                lwork=round(Int64,nextfloat(real(work[1])))
+                lwork=round(BlasInt,nextfloat(real(work[1])))
                 resize!(work,lwork)
             end
 
@@ -417,8 +418,8 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tauq=similar(A,$elty,minmn)
         taup=similar(A,$elty,minmn)
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info  = Ref{Int64}()
+        lwork=BlasInt(-1)
+        info  = Ref{BlasInt}()
         ida=max(1,stride(A,2))
 
         for i= 1:2
@@ -426,7 +427,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
             func=(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork=ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -437,8 +438,8 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
     function getrf!(A::AbstractMatrix{$elty})
         m,n=size(A)
         minmn=min(m,n)
-        ipiv=similar(A,Int64,minmn)
-        info  = Ref{Int64}()
+        ipiv=similar(A,BlasInt,minmn)
+        info  = Ref{BlasInt}()
         ida=max(1,stride(A,2))
         func=eval(@funcexpr($getrf))
         func(m,n,A,ida,ipiv,info)
@@ -452,14 +453,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=BlasInt(-1)
+        info = Ref{BlasInt}()
         for i= 1:2
             func=eval(@funcexpr($gelqf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork=ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -473,14 +474,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=BlasInt(-1)
+        info = Ref{BlasInt}()
         for i= 1:2
             func=eval(@funcexpr($geqlf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork=ceil(Int64,real(work[1]))
+                lwork=ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
 
@@ -494,14 +495,14 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         tau=similar(A,$elty,minmn)
         ida=max(1,stride(A,2))
         work=Vector{$elty}(undef,1)
-        lwork=Int64(-1)
-        info = Ref{Int64}()
+        lwork=BlasInt(-1)
+        info = Ref{BlasInt}()
         for i= 1:2
             func=eval(@funcexpr($geqrf))
             func(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
-                lwork = ceil(Int64,real(work[1]))
+                lwork = ceil(BlasInt,real(work[1]))
                 resize!(work,lwork)
             end
 
