@@ -115,11 +115,11 @@ for(gels,gesv,elty) in (
 end 
 
 end
-for(gesv,elty) in (
-    (:magma_dgesv_gpu,:Float64),
-    (:magma_sgesv_gpu,:Float32),
-    (:magma_zgesv_gpu,:ComplexF64),
-    (:magma_cgesv_gpu,:ComplexF32)
+for(gesv,gels,elty) in (
+    (:magma_dgesv_gpu,:magma_dgels_gpu,:Float64),
+    (:magma_sgesv_gpu,:magma_sgels_gpu,:Float32),
+    (:magma_zgesv_gpu,:magma_zgels_gpu,:ComplexF64),
+    (:magma_cgesv_gpu,:magma_cgels_gpu,:ComplexF32)
 )
 @eval begin
     function gesv!(A::CuArray{$elty},B::CuArray{$elty})
@@ -137,6 +137,46 @@ for(gesv,elty) in (
         checkmagmaerror(info[])
         return B,A,ipiv
     end
+
+    function gels!(trans::AbstractChar,A::CuArray{$elty},B::CuArray{$elty})
+        #println(gels,"second")
+        checktranspose(trans)
+        m,n =size(A)
+        btrn= trans == 'N'
+        if size(B,1) != (btrn ? n : m)
+            throw(DimensionMismatch("matrix has dimensions ($m,$n), transposed: $btrn but the leading dimension of B is $(size(B,1))"))
+        end
+        info =Ref{BlasInt}()
+        nrhs=size(B,2)
+        ida=max(1,stride(A,2))
+        idb=max(1,stride(B,2))
+        work=Vector{$elty}(undef,1)
+        lwork=BlasInt(-1)
+        #println(gels)
+        for i = 1:2
+            func=eval(@funcexpr($gels))
+            func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
+            checkmagmaerror(info[])
+            if i==1
+               lwork=ceil(BlasInt,real(work[1]))
+               resize!(work,lwork)
+            end
+
+        end
+        k   = min(m, n)
+        F   = m < n ? tril(A[1:k, 1:k]) : triu(A[1:k, 1:k])
+        ssr = Vector{$elty}(undef, size(B, 2))
+        for i = 1:size(B,2)
+            x = zero($elty)
+            for j = k+1:size(B,1)
+                x += abs2(B[j,i])
+            end
+            ssr[i] = x
+        end
+        return F, subsetrows(B, B, k), ssr
+    end
+
+    
     
 end 
 
@@ -172,6 +212,35 @@ for(posv,elty) in (
 end
 
 end
+for(posv,elty) in (
+    (:magma_dposv_gpu,:Float64),
+    (:magma_sposv_gpu,:Float32),
+    (:magma_zposv_gpu,:ComplexF64),
+    (:magma_cposv_gpu,:ComplexF32)
+
+)
+   @eval begin
+    function posv!(uplo::AbstractChar,A::CuArray{$elty},B::CuArray{$elty})
+        n=checksquare(A)
+        checkuplo(uplo)
+        uplo_magma= uplo == 'U' ? MagmaUpper : MagmaLower
+        if n !=size(B,1)
+            throw(DimensionMismatch("first dimension of B, $(size(B,1)) and size of A,($n,$n), must be the same!"))
+        end
+        info =Ref{BlasInt}()
+        nrhs=size(B,2)
+        ida=max(1,stride(A,2))
+        idb=max(1,stride(B,2))
+        func =eval(@funcexpr($posv))
+        func(uplo_magma,n,nrhs,A,ida,B,idb,info)
+        checkmagmaerror(info[])
+        return A,B
+
+    end
+
+   end
+end
+
 
 for (hesv,elty) in (
     (:magma_chesv,ComplexF32),

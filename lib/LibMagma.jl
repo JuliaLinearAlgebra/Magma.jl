@@ -22688,7 +22688,7 @@ magma_int_t magma_zgels_gpu( magma_trans_t trans, magma_int_t m, magma_int_t n, 
 ```
 """
 function magma_zgels_gpu(trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
-    ccall((:magma_zgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, Ptr{magmaDoubleComplex}, magma_int_t, Ptr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
+    ccall((:magma_zgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magmaDoubleComplex}, magma_int_t, PtrOrCuPtr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
 end
 
 """
@@ -24019,7 +24019,7 @@ magma_int_t magma_zposv_gpu( magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
 ```
 """
 function magma_zposv_gpu(uplo, n, nrhs, dA, ldda, dB, lddb, info)
-    ccall((:magma_zposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, Ptr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
+    ccall((:magma_zposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
 end
 
 """
@@ -25235,7 +25235,7 @@ magma_int_t magma_cgels_gpu( magma_trans_t trans, magma_int_t m, magma_int_t n, 
 ```
 """
 function magma_cgels_gpu(trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
-    ccall((:magma_cgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magmaFloatComplex_ptr, magma_int_t, Ptr{magmaFloatComplex}, magma_int_t, Ptr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
+    ccall((:magma_cgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magmaFloatComplex}, magma_int_t, PtrOrCuPtr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
 end
 
 """
@@ -26566,7 +26566,7 @@ magma_int_t magma_cposv_gpu( magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
 ```
 """
 function magma_cposv_gpu(uplo, n, nrhs, dA, ldda, dB, lddb, info)
-    ccall((:magma_cposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magmaFloatComplex_ptr, magma_int_t, Ptr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
+    ccall((:magma_cposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
 end
 
 """
@@ -27848,7 +27848,7 @@ magma_int_t magma_dgels_gpu( magma_trans_t trans, magma_int_t m, magma_int_t n, 
 ```
 """
 function magma_dgels_gpu(trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
-    ccall((:magma_dgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, magmaDouble_ptr, magma_int_t, Ptr{Cdouble}, magma_int_t, Ptr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
+    ccall((:magma_dgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{Cdouble}, magma_int_t, PtrOrCuPtr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
 end
 
 """
@@ -29189,7 +29189,7 @@ magma_int_t magma_dposv_gpu( magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
 ```
 """
 function magma_dposv_gpu(uplo, n, nrhs, dA, ldda, dB, lddb, info)
-    ccall((:magma_dposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, magmaDouble_ptr, magma_int_t, Ptr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
+    ccall((:magma_dposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
 end
 
 """
@@ -30419,7 +30419,7 @@ magma_int_t magma_sgels_gpu( magma_trans_t trans, magma_int_t m, magma_int_t n, 
 ```
 """
 function magma_sgels_gpu(trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
-    ccall((:magma_sgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, magmaFloat_ptr, magma_int_t, Ptr{Cfloat}, magma_int_t, Ptr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
+    ccall((:magma_sgels_gpu, libmagma), magma_int_t, (magma_trans_t, magma_int_t, magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{Cfloat}, magma_int_t, PtrOrCuPtr{magma_int_t}), trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info)
 end
 
 """
@@ -31760,7 +31760,7 @@ magma_int_t magma_sposv_gpu( magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
 ```
 """
 function magma_sposv_gpu(uplo, n, nrhs, dA, ldda, dB, lddb, info)
-    ccall((:magma_sposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, magmaFloat_ptr, magma_int_t, Ptr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
+    ccall((:magma_sposv_gpu, libmagma), magma_int_t, (magma_uplo_t, magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), uplo, n, nrhs, dA, ldda, dB, lddb, info)
 end
 
 """
