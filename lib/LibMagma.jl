@@ -583,7 +583,7 @@ end
 
 const magmaDoubleComplex = Cint
 
-const magmaDoubleComplex_ptr = Ptr{magmaDoubleComplex}
+const magmaDoubleComplex_ptr = PtrOrCuPtr{magmaDoubleComplex}
 
 """
     magma_zsetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, file, line)
@@ -598,7 +598,7 @@ function magma_zsetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, f
     ccall((:magma_zsetvector_internal, libmagma), Cvoid, (magma_int_t, Ptr{magmaDoubleComplex}, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), n, hx_src, incx, dy_dst, incy, queue, func, file, line)
 end
 
-const magmaDoubleComplex_const_ptr = Ptr{magmaDoubleComplex}
+const magmaDoubleComplex_const_ptr = PtrOrCuPtr{magmaDoubleComplex}
 
 """
     magma_zgetvector_internal(n, dx_src, incx, hy_dst, incy, queue, func, file, line)
@@ -745,7 +745,7 @@ end
 
 const magmaFloatComplex = Cint
 
-const magmaFloatComplex_ptr = Ptr{magmaFloatComplex}
+const magmaFloatComplex_ptr = PtrOrCuPtr{magmaFloatComplex}
 
 """
     magma_csetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, file, line)
@@ -760,7 +760,7 @@ function magma_csetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, f
     ccall((:magma_csetvector_internal, libmagma), Cvoid, (magma_int_t, Ptr{magmaFloatComplex}, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), n, hx_src, incx, dy_dst, incy, queue, func, file, line)
 end
 
-const magmaFloatComplex_const_ptr = Ptr{magmaFloatComplex}
+const magmaFloatComplex_const_ptr = PtrOrCuPtr{magmaFloatComplex}
 
 """
     magma_cgetvector_internal(n, dx_src, incx, hy_dst, incy, queue, func, file, line)
@@ -905,7 +905,7 @@ function magma_ccopymatrix_async_internal(m, n, dA_src, ldda, dB_dst, lddb, queu
     ccall((:magma_ccopymatrix_async_internal, libmagma), Cvoid, (magma_int_t, magma_int_t, magmaFloatComplex_const_ptr, magma_int_t, magmaFloatComplex_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), m, n, dA_src, ldda, dB_dst, lddb, queue, func, file, line)
 end
 
-const magmaDouble_ptr = Ptr{Cdouble}
+const magmaDouble_ptr = PtrOrCuPtr{Cdouble}
 
 """
     magma_dsetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, file, line)
@@ -920,7 +920,7 @@ function magma_dsetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, f
     ccall((:magma_dsetvector_internal, libmagma), Cvoid, (magma_int_t, Ptr{Cdouble}, magma_int_t, magmaDouble_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), n, hx_src, incx, dy_dst, incy, queue, func, file, line)
 end
 
-const magmaDouble_const_ptr = Ptr{Cdouble}
+const magmaDouble_const_ptr = PtrOrCuPtr{Cdouble}
 
 """
     magma_dgetvector_internal(n, dx_src, incx, hy_dst, incy, queue, func, file, line)
@@ -1065,7 +1065,7 @@ function magma_dcopymatrix_async_internal(m, n, dA_src, ldda, dB_dst, lddb, queu
     ccall((:magma_dcopymatrix_async_internal, libmagma), Cvoid, (magma_int_t, magma_int_t, magmaDouble_const_ptr, magma_int_t, magmaDouble_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), m, n, dA_src, ldda, dB_dst, lddb, queue, func, file, line)
 end
 
-const magmaFloat_ptr = Ptr{Cfloat}
+const magmaFloat_ptr = PtrOrCuPtr{Cfloat}
 
 """
     magma_ssetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, file, line)
@@ -1080,7 +1080,7 @@ function magma_ssetvector_internal(n, hx_src, incx, dy_dst, incy, queue, func, f
     ccall((:magma_ssetvector_internal, libmagma), Cvoid, (magma_int_t, Ptr{Cfloat}, magma_int_t, magmaFloat_ptr, magma_int_t, magma_queue_t, Ptr{Cchar}, Ptr{Cchar}, Cint), n, hx_src, incx, dy_dst, incy, queue, func, file, line)
 end
 
-const magmaFloat_const_ptr = Ptr{Cfloat}
+const magmaFloat_const_ptr = PtrOrCuPtr{Cfloat}
 
 """
     magma_sgetvector_internal(n, dx_src, incx, hy_dst, incy, queue, func, file, line)
@@ -22987,7 +22987,7 @@ magma_int_t magma_zgesv_gpu( magma_int_t n, magma_int_t nrhs, magmaDoubleComplex
 ```
 """
 function magma_zgesv_gpu(n, nrhs, dA, ldda, ipiv, dB, lddb, info)
-    ccall((:magma_zgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, Ptr{magma_int_t}, magmaDoubleComplex_ptr, magma_int_t, Ptr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
+    ccall((:magma_zgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
 end
 
 """
@@ -25534,7 +25534,7 @@ magma_int_t magma_cgesv_gpu( magma_int_t n, magma_int_t nrhs, magmaFloatComplex_
 ```
 """
 function magma_cgesv_gpu(n, nrhs, dA, ldda, ipiv, dB, lddb, info)
-    ccall((:magma_cgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, Ptr{magma_int_t}, magmaFloatComplex_ptr, magma_int_t, Ptr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
+    ccall((:magma_cgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
 end
 
 """
@@ -28147,7 +28147,7 @@ magma_int_t magma_dgesv_gpu( magma_int_t n, magma_int_t nrhs, magmaDouble_ptr dA
 ```
 """
 function magma_dgesv_gpu(n, nrhs, dA, ldda, ipiv, dB, lddb, info)
-    ccall((:magma_dgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, Ptr{magma_int_t}, magmaDouble_ptr, magma_int_t, Ptr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
+    ccall((:magma_dgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
 end
 
 """
@@ -30718,7 +30718,7 @@ magma_int_t magma_sgesv_gpu( magma_int_t n, magma_int_t nrhs, magmaFloat_ptr dA,
 ```
 """
 function magma_sgesv_gpu(n, nrhs, dA, ldda, ipiv, dB, lddb, info)
-    ccall((:magma_sgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, Ptr{magma_int_t}, magmaFloat_ptr, magma_int_t, Ptr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
+    ccall((:magma_sgesv_gpu, libmagma), magma_int_t, (magma_int_t, magma_int_t, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, nrhs, dA, ldda, ipiv, dB, lddb, info)
 end
 
 """
