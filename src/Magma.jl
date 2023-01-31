@@ -127,7 +127,7 @@ for(gesv,elty) in (
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but needs $n"))
         end
-        ipiv=similar(A,BlasInt,n)
+        ipiv=similar(Matrix(A),BlasInt,n)
         info =Ref{BlasInt}()
         nrhs=size(B,2)
         ida=max(1,stride(A,2))

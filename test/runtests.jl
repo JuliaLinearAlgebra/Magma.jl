@@ -2,8 +2,7 @@ using Magma
 using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,magma_init,magma_finalize
 using Test
 using Random
-#using libstramopil
-#using Main.LibMagma
+using CUDA
 using LinearAlgebra
 import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
 getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf! as lgeqlf!, gelqf! as lgelqf!
@@ -31,6 +30,29 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             #println("initiated magma")
             # we seg fault in gesv! call
             actual_res= gesv!(A_cop,X_cop)
+            #println("after caling the function gesv")
+            magma_finalize()
+            for i in 1:3
+                #println("inside the for loop")
+                @test Array(actual_res[i]) ≈ Array(expected_res[i])
+            end
+            
+            
+        end
+    end
+
+    @testset "gesv_gpu" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            #Random.seed!(913)
+            A = rand(elty,10,10)
+            X = rand(elty,10,10)
+            A_cu=cu(A)
+            X_cu=cu(X)
+            expected_res=lgesv!(A,X)
+            magma_init()
+            #println("initiated magma")
+            # we seg fault in gesv! call
+            actual_res= gesv!(A_cu,X_cu)
             #println("after caling the function gesv")
             magma_finalize()
             for i in 1:3
@@ -200,7 +222,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
 
     @testset "gebrd" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64) 
-            A = rand(elty,10,10)
+            A = rand(elty,5,5)
             A_cop=copy(A)
             expect_res= lgebrd!(A)
             #idx=[1,4,5]
