@@ -1,4 +1,5 @@
 module Magma
+using CUDA
 using LinearAlgebra: triu, tril
 
 include("linearsolvers.jl")
@@ -113,6 +114,33 @@ for(gels,gesv,elty) in (
 end 
 
 end
+for(gesv,elty) in (
+    (:magma_dgesv_gpu,:Float64),
+    (:magma_sgesv_gpu,:Float32),
+    (:magma_zgesv_gpu,:ComplexF64),
+    (:magma_cgesv_gpu,:ComplexF32)
+)
+@eval begin
+    function gesv!(A::CuArray{$elty},B::CuArray{$elty})
+        n=checksquare(A)
+        if n != size(B,1)
+            throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but nees $n"))
+        end
+        ipiv=similar(A,Int64,n)
+        info =Ref{Int64}()
+        nrhs=size(B,2)
+        ida=max(1,stride(A,2))
+        idb=max(1,stride(B,2))
+        func=eval(@funcexpr($gesv))
+        func(n,nrhs,A,ida,ipiv,B,idb,info)
+        checkmagmaerror(info[])
+        return B,A,ipiv
+    end
+    
+end 
+
+
+end 
 
 for(posv,elty) in (
     (:magma_dposv,:Float64),
