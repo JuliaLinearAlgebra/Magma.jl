@@ -1,11 +1,11 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,getri!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,getri!,getrs!,magma_init,magma_finalize
 using Test
 using Random
 using CUDA
 using LinearAlgebra
 import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
-getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf! as lgeqlf!, gelqf! as lgelqf!
+getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf! as lgeqlf!, gelqf! as lgelqf!,getrs! as lgetrs!
 #using libblastrampoline_jll
 
 @testset "Magma.jl" begin
@@ -267,6 +267,30 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             magma_finalize()
             
             @test Array(A_l) ≈ Array(A)
+
+        end
+    end
+
+    @testset "getrs_gpu" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            B = rand(elty,10,10)
+            A_l=copy(A)
+            B_l=copy(B)
+
+
+            A,ipiv,info= lgetrf!(A)
+            B=lgetrs!('N',A,ipiv,B)
+
+            A_l,ipiv_l,info_l=lgetrf!(A_l)
+
+            A_l=cu(A_l)
+            B_l=cu(B_l)
+            magma_init()
+            B_l=getrs!('N',A_l,ipiv_l,B_l)
+            magma_finalize()
+            
+            @test Array(B_l) ≈ Array(B)
 
         end
     end

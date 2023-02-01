@@ -570,12 +570,12 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
 
 end
 
-for (getrf,geqrf,geqrfnb,getri,getrinb,elty,relty) in
+for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
     (
-        (:magma_dgetrf_gpu,:magma_dgeqrf_gpu,:magma_get_dgeqrf_nb,:magma_dgetri_gpu,:magma_get_dgetri_nb,:Float64,:Float64),
-        (:magma_sgetrf_gpu,:magma_sgeqrf_gpu,:magma_get_sgeqrf_nb,:magma_sgetri_gpu,:magma_get_sgetri_nb,:Float32,:Float32),
-        (:magma_zgetrf_gpu,:magma_zgeqrf_gpu,:magma_get_zgeqrf_nb,:magma_zgetri_gpu,:magma_get_zgetri_nb,:ComplexF64,:Float64),
-        (:magma_cgetrf_gpu,:magma_cgeqrf_gpu,:magma_get_cgeqrf_nb,:magma_cgetri_gpu,:magma_get_cgetri_nb,:ComplexF32,:Float32)
+        (:magma_dgetrf_gpu,:magma_dgeqrf_gpu,:magma_get_dgeqrf_nb,:magma_dgetri_gpu,:magma_get_dgetri_nb,:magma_dgetrs_gpu,:Float64,:Float64),
+        (:magma_sgetrf_gpu,:magma_sgeqrf_gpu,:magma_get_sgeqrf_nb,:magma_sgetri_gpu,:magma_get_sgetri_nb,:magma_sgetrs_gpu,:Float32,:Float32),
+        (:magma_zgetrf_gpu,:magma_zgeqrf_gpu,:magma_get_zgeqrf_nb,:magma_zgetri_gpu,:magma_get_zgetri_nb,:magma_zgetrs_gpu,:ComplexF64,:Float64),
+        (:magma_cgetrf_gpu,:magma_cgeqrf_gpu,:magma_get_cgeqrf_nb,:magma_cgetri_gpu,:magma_get_cgetri_nb,:magma_cgetrs_gpu,:ComplexF32,:Float32)
     )
    
     @eval begin
@@ -622,7 +622,22 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,elty,relty) in
             return A
         end
 
-        
+        function getrs!(trans::AbstractChar,A::CuMatrix{$elty},ipiv::Array{BlasInt},B::CuArray{$elty},)
+            n=checksquare(A)
+            trans_m = trans == 'T' ? MagmaTrans : ( trans == 'C' ? MagmaConjTrans : MagmaNoTrans)
+            if n != size(B, 1)
+                throw(DimensionMismatch("B has leading dimension $(size(B,1)), but needs $n"))
+            end
+
+            nrhs = size(B, 2)
+            ida=max(1,stride(A,2))
+            idb=max(1,stride(B,2))
+            info = Ref{BlasInt}()
+            func= eval(@funcexpr($getrs))
+            func(trans_m,n,nrhs,A,ida,ipiv,B,idb,info)
+            return B
+
+        end
 
 
     end
