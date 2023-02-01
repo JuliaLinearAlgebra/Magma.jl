@@ -570,12 +570,12 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
 
 end
 
-for (getrf,geqrf,geqrfnb,elty,relty) in
+for (getrf,geqrf,geqrfnb,getri,getrinb,elty,relty) in
     (
-        (:magma_dgetrf_gpu,:magma_dgeqrf_gpu,:magma_get_dgeqrf_nb,:Float64,:Float64),
-        (:magma_sgetrf_gpu,:magma_sgeqrf_gpu,:magma_get_sgeqrf_nb,:Float32,:Float32),
-        (:magma_zgetrf_gpu,:magma_zgeqrf_gpu,:magma_get_zgeqrf_nb,:ComplexF64,:Float64),
-        (:magma_cgetrf_gpu,:magma_cgeqrf_gpu,:magma_get_cgeqrf_nb,:ComplexF32,:Float32)
+        (:magma_dgetrf_gpu,:magma_dgeqrf_gpu,:magma_get_dgeqrf_nb,:magma_dgetri_gpu,:magma_get_dgetri_nb,:Float64,:Float64),
+        (:magma_sgetrf_gpu,:magma_sgeqrf_gpu,:magma_get_sgeqrf_nb,:magma_sgetri_gpu,:magma_get_sgetri_nb,:Float32,:Float32),
+        (:magma_zgetrf_gpu,:magma_zgeqrf_gpu,:magma_get_zgeqrf_nb,:magma_zgetri_gpu,:magma_get_zgetri_nb,:ComplexF64,:Float64),
+        (:magma_cgetrf_gpu,:magma_cgeqrf_gpu,:magma_get_cgeqrf_nb,:magma_cgetri_gpu,:magma_get_cgetri_nb,:ComplexF32,:Float32)
     )
    
     @eval begin
@@ -607,6 +607,21 @@ for (getrf,geqrf,geqrfnb,elty,relty) in
     
         end
 
+        function getri!(A::CuMatrix{$elty},ipiv::Array{BlasInt})
+            n=checksquare(A)
+            if n != length(ipiv)
+                throw(DimensionMismatch("ipiv has length $(length(ipiv)), but needs $n"))
+            end
+            ida=max(1,stride(A,2))
+            func_nb=eval(@funcexpr($getrinb))
+            lwork=ceil(BlasInt,real(n*func_nb(n)))
+            work=cu(Vector{$elty}(undef,max(1,lwork)))
+            info = Ref{BlasInt}()
+            func=eval(@funcexpr($getri))
+            func(n,A,ida,ipiv,work,lwork,info)
+            return A
+        end
+
         
 
 
@@ -615,6 +630,7 @@ for (getrf,geqrf,geqrfnb,elty,relty) in
 
 
 end
+
 
 
 end

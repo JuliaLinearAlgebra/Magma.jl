@@ -1,5 +1,5 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,getri!,magma_init,magma_finalize
 using Test
 using Random
 using CUDA
@@ -233,7 +233,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             magma_init()
             A, ipiv = getrf!(A)
             magma_finalize()
-            A = lgetri!(A, ipiv)
+            A = lgetri!(Array(A), ipiv)
             @test A ≈ iA
         end
     end
@@ -248,6 +248,26 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             magma_finalize()
             A = lgetri!(Array(A), Array(ipiv))
             @test A ≈ iA
+        end
+    end
+    @testset "getri_gpu" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_l=copy(A)
+
+
+            A,ipiv,info= lgetrf!(A)
+            A=lgetri!(A,ipiv)
+
+            A_l,ipiv_l,info_l=lgetrf!(A_l)
+
+            A_l=cu(A_l)
+            magma_init()
+            A_l=getri!(A_l,ipiv_l)
+            magma_finalize()
+            
+            @test Array(A_l) ≈ Array(A)
+
         end
     end
 

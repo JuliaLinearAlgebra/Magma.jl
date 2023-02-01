@@ -23234,7 +23234,7 @@ magma_int_t magma_zgetri_gpu( magma_int_t n, magmaDoubleComplex_ptr dA, magma_in
 ```
 """
 function magma_zgetri_gpu(n, dA, ldda, ipiv, dwork, lwork, info)
-    ccall((:magma_zgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaDoubleComplex_ptr, magma_int_t, Ptr{magma_int_t}, magmaDoubleComplex_ptr, magma_int_t, Ptr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
+    ccall((:magma_zgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaDoubleComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
 end
 
 """
@@ -25781,7 +25781,7 @@ magma_int_t magma_cgetri_gpu( magma_int_t n, magmaFloatComplex_ptr dA, magma_int
 ```
 """
 function magma_cgetri_gpu(n, dA, ldda, ipiv, dwork, lwork, info)
-    ccall((:magma_cgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaFloatComplex_ptr, magma_int_t, Ptr{magma_int_t}, magmaFloatComplex_ptr, magma_int_t, Ptr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
+    ccall((:magma_cgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaFloatComplex_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
 end
 
 """
@@ -28394,7 +28394,7 @@ magma_int_t magma_dgetri_gpu( magma_int_t n, magmaDouble_ptr dA, magma_int_t ldd
 ```
 """
 function magma_dgetri_gpu(n, dA, ldda, ipiv, dwork, lwork, info)
-    ccall((:magma_dgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaDouble_ptr, magma_int_t, Ptr{magma_int_t}, magmaDouble_ptr, magma_int_t, Ptr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
+    ccall((:magma_dgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaDouble_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
 end
 
 """
@@ -30965,7 +30965,7 @@ magma_int_t magma_sgetri_gpu( magma_int_t n, magmaFloat_ptr dA, magma_int_t ldda
 ```
 """
 function magma_sgetri_gpu(n, dA, ldda, ipiv, dwork, lwork, info)
-    ccall((:magma_sgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaFloat_ptr, magma_int_t, Ptr{magma_int_t}, magmaFloat_ptr, magma_int_t, Ptr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
+    ccall((:magma_sgetri_gpu, libmagma), magma_int_t, (magma_int_t, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}, magmaFloat_ptr, magma_int_t, PtrOrCuPtr{magma_int_t}), n, dA, ldda, ipiv, dwork, lwork, info)
 end
 
 """
