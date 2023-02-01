@@ -9,4 +9,5 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MAGMA_jll = "7a7c8717-d270-5a90-94a0-6104d6fc12ee"
 
 [compat]
+CUDA = "3"
 julia = "1"
