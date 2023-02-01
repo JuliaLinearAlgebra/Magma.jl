@@ -238,6 +238,19 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
         end
     end
 
+    @testset "getrf_gpu" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            iA = inv(A)
+            A_cu=cu(A)
+            magma_init()
+            A, ipiv = getrf!(A_cu)
+            magma_finalize()
+            A = lgetri!(Array(A), Array(ipiv))
+            @test A ≈ iA
+        end
+    end
+
     @testset "geqrf" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
             A = rand(elty,10,10)
@@ -245,6 +258,22 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             expect_res= lgeqrf!(A)
             magma_init()
             actual_res=geqrf!(A_cop)
+            magma_finalize()
+            for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end
+
+            
+        end
+    end
+
+    @testset "geqrf_gpu" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10,10)
+            A_cu=cu(A)
+            expect_res= lgeqrf!(A)
+            magma_init()
+            actual_res=geqrf!(A_cu)
             magma_finalize()
             for i in 1:length(actual_res)
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
