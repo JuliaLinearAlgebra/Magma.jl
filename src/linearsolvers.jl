@@ -1,10 +1,8 @@
 module LibMagma
 # Write your package code here.
-#using libblastrampoline_jll
 using MAGMA_jll
 using CUDA
 const libmagma=MAGMA_jll.libmagma_path
-#const liblapack = libblastrampoline
 
 export magma_init
 export magma_finalize

@@ -6,7 +6,6 @@ using CUDA
 using LinearAlgebra
 import LinearAlgebra.LAPACK: gels! as lgels!,gesv! as lgesv!, posv! as lposv!, hesv! as lhesv!, geev! as lgeev!,gesvd! as lgesvd!,gesdd! as lgesdd!, 
 getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf! as lgeqlf!, gelqf! as lgelqf!,getrs! as lgetrs!
-#using libblastrampoline_jll
 
 @testset "Magma.jl" begin
     # Write your tests here.
@@ -171,7 +170,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             magma_init()
             actual_res=geev!('V','V',A_cop)
             magma_finalize()
-            
+
             for i in 1:length(actual_res)
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
