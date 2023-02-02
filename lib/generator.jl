@@ -2,7 +2,7 @@ using Clang.Generators
 
 cd(@__DIR__)
 
-const HEADER_BASE = "/tmp/yonatandelelegn/spack-stage/spack-stage-magma-2.7.0-3pi6vr3whu4n6f3lhqb2crr52fqty3j5/spack-src/include"
+const HEADER_BASE = joinpath(MAGMA_jll.artifact_dir, "include")
 const MAGMA = joinpath(HEADER_BASE, "magma.h")
 
 headers= [MAGMA]
