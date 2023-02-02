@@ -56,10 +56,9 @@ for(gels,gesv,elty) in (
     (:magma_zgels,:magma_zgesv,:ComplexF64),
     (:magma_cgels,:magma_cgesv,:ComplexF32)
 )
-#println(gels,"first")
+
 @eval begin
     function gels!(trans::AbstractChar,A::AbstractMatrix{$elty},B::AbstractVecOrMat{$elty})
-        #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
         btrn= trans == 'N'
@@ -106,8 +105,6 @@ for(gels,gesv,elty) in (
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
         func=eval(@funcexpr($gesv))
-        #println(func)
-        #segfault happens in the following func call. func evaluates to magma_sgesv
         func(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
@@ -139,7 +136,6 @@ for(gesv,gels,elty) in (
     end
 
     function gels!(trans::AbstractChar,A::CuArray{$elty},B::CuArray{$elty})
-        #println(gels,"second")
         checktranspose(trans)
         m,n =size(A)
         btrn= trans == 'N'
@@ -152,7 +148,6 @@ for(gesv,gels,elty) in (
         idb=max(1,stride(B,2))
         work=Vector{$elty}(undef,1)
         lwork=BlasInt(-1)
-        #println(gels)
         for i = 1:2
             func=eval(@funcexpr($gels))
             func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
@@ -332,7 +327,6 @@ for (geev,gesvd,gesdd,elty,relty) in (
         for i = 1:2
             if is_complex
                 func =eval(@funcexpr($geev))
-                #println("I am here")
                 func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
                 func= eval(@funcexpr($geev))
