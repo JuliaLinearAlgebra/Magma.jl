@@ -372,8 +372,8 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
    #this test runs forever
     @testset "gesv_batched" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
-            A = CUDA.rand(elty,10,10,3)
-            X = CUDA.rand(elty,10,10,3)
+            A = CUDA.rand(elty,1024,1024,3)
+            X = CUDA.rand(elty,1024,1024,3)
 
             magma_init()
             gesv_batched!(A,X)
