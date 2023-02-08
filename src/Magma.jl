@@ -50,6 +50,9 @@ end
 subsetrows(X::AbstractVector, Y::AbstractArray, k) = Y[1:k]
 subsetrows(X::AbstractMatrix, Y::AbstractArray, k) = Y[1:k, :]
 
+include("Batched.jl")
+
+
 for(gels,gesv,elty) in (
     (:magma_dgels,:magma_dgesv,:Float64),
     (:magma_sgels,:magma_sgesv,:Float32),

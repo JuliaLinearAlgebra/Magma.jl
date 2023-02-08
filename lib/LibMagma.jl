@@ -13,9 +13,9 @@ const magma_ptr = Ptr{Cvoid}
 """
 opaque queue structure
 """
-mutable struct magma_queue end
+magma_queue = Cvoid
 
-const magma_queue_t = Ptr{magma_queue}
+const magma_queue_t = PtrOrCuPtr{magma_queue}
 
 """
     magma_setvector_internal(n, elemSize, hx_src, incx, dy_dst, incy, queue, func, file, line)
@@ -10625,7 +10625,7 @@ magma_int_t magma_zgesv_batched( magma_int_t n, magma_int_t nrhs, magmaDoubleCom
 ```
 """
 function magma_zgesv_batched(n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
-    ccall((:magma_zgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, Ptr{Ptr{magmaDoubleComplex}}, magma_int_t, Ptr{Ptr{magma_int_t}}, Ptr{Ptr{magmaDoubleComplex}}, magma_int_t, Ptr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
+    ccall((:magma_zgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magmaDoubleComplex}}, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magma_int_t}}, PtrOrCuPtr{PtrOrCuPtr{magmaDoubleComplex}}, magma_int_t, PtrOrCuPtr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
 end
 
 """
@@ -12407,7 +12407,7 @@ magma_int_t magma_cgesv_batched( magma_int_t n, magma_int_t nrhs, magmaFloatComp
 ```
 """
 function magma_cgesv_batched(n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
-    ccall((:magma_cgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, Ptr{Ptr{magmaFloatComplex}}, magma_int_t, Ptr{Ptr{magma_int_t}}, Ptr{Ptr{magmaFloatComplex}}, magma_int_t, Ptr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
+    ccall((:magma_cgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magmaFloatComplex}}, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magma_int_t}}, PtrOrCuPtr{PtrOrCuPtr{magmaFloatComplex}}, magma_int_t, PtrOrCuPtr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
 end
 
 """
@@ -14137,7 +14137,7 @@ magma_int_t magma_dgesv_batched( magma_int_t n, magma_int_t nrhs, double **dA_ar
 ```
 """
 function magma_dgesv_batched(n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
-    ccall((:magma_dgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, Ptr{Ptr{Cdouble}}, magma_int_t, Ptr{Ptr{magma_int_t}}, Ptr{Ptr{Cdouble}}, magma_int_t, Ptr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
+    ccall((:magma_dgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{Cdouble}}, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magma_int_t}}, PtrOrCuPtr{PtrOrCuPtr{Cdouble}}, magma_int_t, PtrOrCuPtr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
 end
 
 """
@@ -15867,7 +15867,7 @@ magma_int_t magma_sgesv_batched( magma_int_t n, magma_int_t nrhs, float **dA_arr
 ```
 """
 function magma_sgesv_batched(n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
-    ccall((:magma_sgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, Ptr{Ptr{Cfloat}}, magma_int_t, Ptr{Ptr{magma_int_t}}, Ptr{Ptr{Cfloat}}, magma_int_t, Ptr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
+    ccall((:magma_sgesv_batched, libmagma), magma_int_t, (magma_int_t, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{Cfloat}}, magma_int_t, PtrOrCuPtr{PtrOrCuPtr{magma_int_t}}, PtrOrCuPtr{PtrOrCuPtr{Cfloat}}, magma_int_t, PtrOrCuPtr{magma_int_t}, magma_int_t, magma_queue_t), n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue)
 end
 
 """

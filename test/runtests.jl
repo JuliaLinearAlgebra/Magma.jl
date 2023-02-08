@@ -1,5 +1,5 @@
 using Magma
-using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,getri!,getrs!,magma_init,magma_finalize
+using Magma: gesv!,gels!,posv!,hesv!,sysv!,geev!,gesvd!,gesdd!,getrf!,geqrf!,gebrd!,geqlf!,gelqf!,getri!,getrs!,gesv_batched!,magma_init,magma_finalize
 using Test
 using Random
 using CUDA
@@ -369,6 +369,21 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             end    
         end
     end
+
+    #=@testset "gesv_batched" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = CUDA.rand(elty,10,10,3)
+            X = CUDA.rand(elty,10,10,3)
+
+            magma_init()
+            gesv_batched!(A,X)
+            magma_finalize()
+
+
+            
+
+        end
+    end=#
 
 
 
