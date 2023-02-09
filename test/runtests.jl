@@ -372,11 +372,17 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
    #this test runs forever
     @testset "gesv_batched" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
-            A = CUDA.rand(elty,1024,1024,3)
-            X = CUDA.rand(elty,1024,1024,3)
+            A = [rand(elty,32,32) for i in 1:10]
+            B = [rand(elty,32,32) for i in 1:10]
+            bd_A = CuArray{elty, 2}[]
+            bd_B = CuArray{elty, 2}[]
+            for i in 1:length(A)
+                push!(bd_A,CuArray(A[i]))
+                push!(bd_B,CuArray(B[i]))
+            end
 
             magma_init()
-            gesv_batched!(A,X)
+            gesv_batched!(bd_A,bd_B)
             magma_finalize()
 
 
