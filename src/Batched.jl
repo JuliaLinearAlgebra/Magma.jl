@@ -14,8 +14,9 @@ for(gesv_batched,elty) in (
         n=size(A[1],2)
         ipiv=similar(A,BlasInt,(n,batch_count))
         info =similar(A,BlasInt,batch_count)
-        queue= Ref{LibMagma.magma_queue_t}()
-        LibMagma.magma_queue_create_internal(CUDA.device().handle, queue, "", "", 0)
+        queueref = Ref{LibMagma.magma_queue_t}()
+        LibMagma.magma_queue_create_internal(CUDA.device().handle, queueref, "", "", 0)
+        queue = queueref[]
         nrhs=size(B[1],2)
         ida = max(1,stride(A[1],2))
         idb = max(1,stride(B[1],2))
