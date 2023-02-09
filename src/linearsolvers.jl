@@ -8,6 +8,8 @@ const libmagma=MAGMA_jll.libmagma_path
 
 export magma_init
 export magma_finalize
+export magma_queue_t
+export magma_queue_create_internal
 include("../lib/LibMagma.jl")
 
 #exports

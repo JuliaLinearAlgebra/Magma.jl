@@ -13,7 +13,7 @@ const magma_ptr = Ptr{Cvoid}
 """
 opaque queue structure
 """
-magma_queue = Cvoid
+mutable struct magma_queue end
 
 const magma_queue_t = PtrOrCuPtr{magma_queue}
 
@@ -1262,6 +1262,11 @@ const magma_device_t = magma_int_t
 void magma_queue_create_internal( magma_device_t device, magma_queue_t* queue_ptr, const char* func, const char* file, int line );
 ```
 """
+function magma_queue_create(device,queue_ptr)
+    ccall((:magma_queue_create, libmagma),Cvoid,(magma_device_t, Ptr{magma_queue_t}),device, queue_ptr)
+end
+
+
 function magma_queue_create_internal(device, queue_ptr, func, file, line)
     ccall((:magma_queue_create_internal, libmagma), Cvoid, (magma_device_t, Ptr{magma_queue_t}, Ptr{Cchar}, Ptr{Cchar}, Cint), device, queue_ptr, func, file, line)
 end
