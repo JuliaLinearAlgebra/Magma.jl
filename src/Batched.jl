@@ -13,7 +13,7 @@ for(gesv_batched,set_device,get_device,queue_create,elty) in (
         batch_count=length(A)
         n=size(A[1],2)
         ipiv=similar(A,BlasInt,(n,batch_count))
-        info =Ref{BlasInt}()
+        info =similar(A,BlasInt,batch_count)
         queue= Ref{magma_queue_t}()
 
         device=Ref{BlasInt}()
@@ -33,10 +33,16 @@ for(gesv_batched,set_device,get_device,queue_create,elty) in (
         Aptrs = CUDA.CUBLAS.unsafe_batch(A)
         Bptrs = CUDA.CUBLAS.unsafe_batch(B)
         func=eval(@funcexpr($gesv_batched))
-        func(n,nrhs,Aptrs,ida,ipiv,Bptrs,idb,info,batch_count,queue)
-        checkmagmaerror(info[])
+        func(n,nrhs,Aptrs,ida,ipiv,Bptrs,idb,info,batch_count,queue[])
+        info=Array(info)
+        for i in 1:batch_count
+            checkmagmaerror(info[i])
+
+        end
+        
         CUDA.unsafe_free!(Bptrs)
         CUDA.unsafe_free!(Aptrs)
+        magma
         return B,A,ipiv
 
 
