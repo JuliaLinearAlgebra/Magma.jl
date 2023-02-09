@@ -15,7 +15,7 @@ opaque queue structure
 """
 mutable struct magma_queue end
 
-const magma_queue_t = PtrOrCuPtr{magma_queue}
+const magma_queue_t = Ptr{magma_queue}
 
 """
     magma_setvector_internal(n, elemSize, hx_src, incx, dy_dst, incy, queue, func, file, line)
