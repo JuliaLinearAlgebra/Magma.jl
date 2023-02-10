@@ -15,13 +15,16 @@ for(gesv_batched,elty) in (
         ipiv=similar(A,BlasInt,(n,batch_count))
         info =similar(A,BlasInt,batch_count)
         queue= Ref{LibMagma.magma_queue_t}()
-        LibMagma.magma_queue_create_internal(CUDA.device().handle, queue, "", "", 0)
+        device=Ref{BlasInt}()
+        LibMagma.magma_getdevice(device)
+        LibMagma.magma_setdevice(device[])
+        LibMagma.magma_queue_create_internal(device[], queue, "", "", 0)
         nrhs=size(B[1],2)
         ida = max(1,stride(A[1],2))
         idb = max(1,stride(B[1],2))
         Aptrs = CUDA.CUBLAS.unsafe_batch(A)
         Bptrs = CUDA.CUBLAS.unsafe_batch(B)
-        LibMagma.$gesv_batched(n,nrhs,Aptrs,ida,ipiv,Bptrs,idb,info,batch_count,queue)
+        LibMagma.$gesv_batched(n,nrhs,Aptrs,ida,ipiv,Bptrs,idb,info,batch_count,queue[])
 
         info=Array(info)
         for i in 1:batch_count
