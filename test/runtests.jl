@@ -306,7 +306,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
         end
     end
 
-    #=@testset "gebrd" begin
+    @testset "gebrd" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64) 
             A = rand(elty,5,5)
             A_cop=copy(A)
@@ -319,7 +319,7 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
                 @test Array(actual_res[i]) ≈ Array(expect_res[i])
             end
         end
-    end=#
+    end
 
     @testset "geqlf" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)

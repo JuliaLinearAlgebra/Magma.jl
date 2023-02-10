@@ -31,11 +31,9 @@ for (geev,gesvd,gesdd,elty,relty) in (
         idvr=n
         for i = 1:2
             if is_complex
-                func =eval(@funcexpr($geev))
-                func(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
+                LibMagma.$geev(jobvl_int,jobvr_int,n,A,ida,W,VL,idvl,VR,idvr,work,lwork,rwork,info)
             else
-                func= eval(@funcexpr($geev))
-                func(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
+                LibMagma.$geev(jobvl_int,jobvr_int,n,A,ida,WR,WI,VL,idvl,VR,idvr,work,lwork,info)
             end
             checkmagmaerror(info[])
             if i==1
@@ -67,12 +65,10 @@ for (geev,gesvd,gesdd,elty,relty) in (
         idv=max(1,stride(VT,2))
         for i in 1:2
             if is_complex
-                func =eval(@funcexpr($gesvd))
-                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,info)
+                LibMagma.$gesvd(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,info)
             else
 
-                func=eval(@funcexpr($gesvd))
-                func(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
+                LibMagma.$gesvd(jobu_c,jobvt_c,m,n,A,ida,S,U,idu,VT,idv,work,lwork,info)
             end
             checkmagmaerror(info[])
             if i==1
@@ -124,11 +120,9 @@ for (geev,gesvd,gesdd,elty,relty) in (
         idv=max(1,stride(VT,2))
         for i in 1:2
             if is_complex
-                func = eval(@funcexpr($gesdd))
-                func(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,iwork,info)
+                LibMagma.$gesdd(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,rwork,iwork,info)
             else
-                func=eval(@funcexpr($gesdd))
-                func(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,iwork,info)
+                LibMagma.$gesdd(jobz_m,m,n,A,ida,S,U,idu,VT,idv,work,lwork,iwork,info)
             end
             checkmagmaerror(info[])
             if i==1
@@ -176,8 +170,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         ida=max(1,stride(A,2))
 
         for i= 1:2
-            func=eval(@funcexpr($gebrd))
-            func=(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
+            LibMagma.$gebrd(m,n,A,ida,d,e,tauq,taup,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                 lwork=ceil(BlasInt,real(work[1]))
@@ -194,8 +187,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         ipiv=similar(A,BlasInt,minmn)
         info  = Ref{BlasInt}()
         ida=max(1,stride(A,2))
-        func=eval(@funcexpr($getrf))
-        func(m,n,A,ida,ipiv,info)
+        LibMagma.$getrf(m,n,A,ida,ipiv,info)
         checkmagmaerror(info[])
         return A,ipiv,info[]
     end
@@ -209,8 +201,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         lwork=BlasInt(-1)
         info = Ref{BlasInt}()
         for i= 1:2
-            func=eval(@funcexpr($gelqf))
-            func(m,n,A,ida,tau,work,lwork,info)
+            LibMagma.$gelqf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                 lwork=ceil(BlasInt,real(work[1]))
@@ -230,8 +221,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         lwork=BlasInt(-1)
         info = Ref{BlasInt}()
         for i= 1:2
-            func=eval(@funcexpr($geqlf))
-            func(m,n,A,ida,tau,work,lwork,info)
+            LibMagma.$geqlf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                 lwork=ceil(BlasInt,real(work[1]))
@@ -251,8 +241,7 @@ for(gebrd,getrf,gelqf,geqlf,geqrf,elty,relty) in (
         lwork=BlasInt(-1)
         info = Ref{BlasInt}()
         for i= 1:2
-            func=eval(@funcexpr($geqrf))
-            func(m,n,A,ida,tau,work,lwork,info)
+            LibMagma.$geqrf(m,n,A,ida,tau,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                 lwork = ceil(BlasInt,real(work[1]))
@@ -285,8 +274,7 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
             ipiv=similar(Matrix(A),BlasInt,minmn)
             info  = Ref{BlasInt}()
             ida=max(1,stride(A,2))
-            func=eval(@funcexpr($getrf))
-            func(m,n,A,ida,ipiv,info)
+            LibMagma.$getrf(m,n,A,ida,ipiv,info)
             checkmagmaerror(info[])
             return A,ipiv,info[]
         end
@@ -294,14 +282,12 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
         function geqrf!(A::CuArray{$elty})
             m,n=size(A)
             minmn=min(m,n)
-            func_nb=eval(@funcexpr($geqrfnb))
-            nb=func_nb(m,n)
+            nb=LibMagma.$geqrfnb(m,n)
             tau=similar(Matrix(A),$elty,minmn)
             ida=max(1,stride(A,2))
             dT=similar(Matrix(A),$elty,(2minmn + ceil(BlasInt,n/32)*32)*nb)
             info = Ref{BlasInt}()
-            func=eval(@funcexpr($geqrf))
-            func(m,n,A,ida,tau,dT,info)
+            LibMagma.$geqrf(m,n,A,ida,tau,dT,info)
             return A,tau
     
         end
@@ -312,12 +298,10 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
                 throw(DimensionMismatch("ipiv has length $(length(ipiv)), but needs $n"))
             end
             ida=max(1,stride(A,2))
-            func_nb=eval(@funcexpr($getrinb))
-            lwork=ceil(BlasInt,real(n*func_nb(n)))
+            lwork=ceil(BlasInt,real(n*LibMagma.$getrinb(n)))
             work=cu(Vector{$elty}(undef,max(1,lwork)))
             info = Ref{BlasInt}()
-            func=eval(@funcexpr($getri))
-            func(n,A,ida,ipiv,work,lwork,info)
+            LibMagma.$getri(n,A,ida,ipiv,work,lwork,info)
             return A
         end
 
@@ -332,8 +316,7 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
             ida=max(1,stride(A,2))
             idb=max(1,stride(B,2))
             info = Ref{BlasInt}()
-            func= eval(@funcexpr($getrs))
-            func(trans_m,n,nrhs,A,ida,ipiv,B,idb,info)
+            LibMagma.$getrs(trans_m,n,nrhs,A,ida,ipiv,B,idb,info)
             return B
 
         end

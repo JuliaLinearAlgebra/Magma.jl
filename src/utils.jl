@@ -1,9 +1,6 @@
 struct MAGMAException <:Exception
     info::BlasInt
 end
-macro funcexpr(funcname)
-    return Expr(:quote,Symbol(funcname))
-end
 
 function checksquare(A) 
     m,n =size(A)

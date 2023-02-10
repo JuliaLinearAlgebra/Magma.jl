@@ -21,8 +21,7 @@ for(gels,gesv,elty) in (
         lwork=BlasInt(-1)
         #println(gels)
         for i = 1:2
-            func=eval(@funcexpr($gels))
-            func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
+            LibMagma.$gels(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                lwork=ceil(BlasInt,real(work[1]))
@@ -52,8 +51,7 @@ for(gels,gesv,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func=eval(@funcexpr($gesv))
-        func(n,nrhs,A,ida,ipiv,B,idb,info)
+        LibMagma.$gesv(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -79,8 +77,7 @@ for(gesv,gels,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func=eval(@funcexpr($gesv))
-        func(n,nrhs,A,ida,ipiv,B,idb,info)
+        LibMagma.$gesv(n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -99,8 +96,7 @@ for(gesv,gels,elty) in (
         work=Vector{$elty}(undef,1)
         lwork=BlasInt(-1)
         for i = 1:2
-            func=eval(@funcexpr($gels))
-            func(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
+            LibMagma.$gels(MagmaNoTrans,m,n,nrhs,A,ida,B,idb,work,lwork,info)
             checkmagmaerror(info[])
             if i==1
                lwork=ceil(BlasInt,real(work[1]))
@@ -149,8 +145,7 @@ for(posv,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func =eval(@funcexpr($posv))
-        func(uplo_magma,n,nrhs,A,ida,B,idb,info)
+        LibMagma.$posv(uplo_magma,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
         return A,B
 
@@ -180,8 +175,7 @@ for(posv,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func =eval(@funcexpr($posv))
-        func(uplo_magma,n,nrhs,A,ida,B,idb,info)
+        LibMagma.$posv(uplo_magma,n,nrhs,A,ida,B,idb,info)
         checkmagmaerror(info[])
         return A,B
 
@@ -211,8 +205,7 @@ for (hesv,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func = eval(@funcexpr($hesv))
-        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
+        LibMagma.$hesv(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
@@ -241,8 +234,7 @@ for (sysv,elty) in (
         nrhs=size(B,2)
         ida=max(1,stride(A,2))
         idb=max(1,stride(B,2))
-        func = eval(@funcexpr($sysv))
-        func(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
+        LibMagma.$sysv(uplo_magma,n,nrhs,A,ida,ipiv,B,idb,info)
         checkmagmaerror(info[])
         return B,A,ipiv
     end
