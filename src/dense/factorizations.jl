@@ -268,7 +268,7 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
    
     @eval begin
         
-        function getrf!(A::CuArray{$elty})
+        function getrf!(A::CuMatrix{$elty})
             m,n=size(A)
             minmn=min(m,n)
             ipiv=similar(Matrix(A),BlasInt,minmn)
@@ -283,9 +283,10 @@ for (getrf,geqrf,geqrfnb,getri,getrinb,getrs,elty,relty) in
             m,n=size(A)
             minmn=min(m,n)
             nb=LibMagma.$geqrfnb(m,n)
+            #println(nb)
             tau=similar(Matrix(A),$elty,minmn)
             ida=max(1,stride(A,2))
-            dT=similar(Matrix(A),$elty,(2minmn + ceil(BlasInt,n/32)*32)*nb)
+            dT=cu(similar(Matrix(A),$elty,(2minmn + ceil(BlasInt,n/32)*32)*nb))
             info = Ref{BlasInt}()
             LibMagma.$geqrf(m,n,A,ida,tau,dT,info)
             return A,tau
