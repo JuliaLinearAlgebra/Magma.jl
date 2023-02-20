@@ -8,7 +8,7 @@ using Magma: magma_init,magma_finalize,gesvd!,geqrf!
 using Plots
 
 
-const SIZES =1024:256:4096
+const SIZES =512:256:4096
 const SUITE = BenchmarkGroup(["Matrixes"])
 #magma_init()
 #A=cu(rand(Float32,256,256))
@@ -38,10 +38,7 @@ end
 
 for s in SIZES,elty in (Float32,)
     A=cu(rand(elty,s,s))
-    CUDA.@sync begin
-        g["qr",elty,s] = @benchmarkable magma_qr($A)
-        
-    end
+    g["qr",elty,s] = @benchmarkable CUDA.@sync magma_qr($A)
       
 end
 magma_finalize()
@@ -50,11 +47,8 @@ g=addgroup!(SUITE,"CUDA")
 for s in SIZES,elty in (Float32,)
     A=cu(rand(elty,s,s))
     A_qr=cu(copy(A))
-
-    CUDA.@sync begin
-        g["svd",elty,s] = @benchmarkable CUDA.svd($A)
-        g["qr",elty,s] =  @benchmarkable CUDA.qr($A_qr) 
-    end
+    g["svd",elty,s] = @benchmarkable CUDA.@sync CUDA.svd($A)
+    g["qr",elty,s] =  @benchmarkable CUDA.@sync CUDA.qr($A_qr)
 end
 
 #=g=addgroup!(SUITE,"LinearAlg")
@@ -72,11 +66,11 @@ magma_init()
 for s in SIZES, elty in (Float32,)
     
 
-    time = @elapsed run(SUITE["magma"][("svd",elty,s)])
-    push!(magma_svd_t,time)
+    #time = @elapsed run(SUITE["magma"][("svd",elty,s)])
+    #push!(magma_svd_t,time)
     #println("done (magma_svd took $time seconds")
-    #time_ = @elapsed run(SUITE["magma"][("qr",elty,s)])
-    #push!(magma_qr_t,time_)
+    time_ = @elapsed run(SUITE["magma"][("qr",elty,s)])
+    push!(magma_qr_t,time_)
     #println("done (magma_qr took $time_ seconds")
 end
 magma_finalize()
@@ -84,22 +78,22 @@ cuda_svd_t=[]
 cuda_qr_t= []
 for s in SIZES, elty in (Float32,)
 
-    time = @elapsed run(SUITE["CUDA"][("svd",elty,s)])
-    push!(cuda_svd_t,time)
+    #time = @elapsed run(SUITE["CUDA"][("svd",elty,s)])
+    #push!(cuda_svd_t,time)
     #println("done (cuda_svd took $time seconds")
-    #time_ = @elapsed run(SUITE["CUDA"][("qr",elty,s)])
-    #push!(cuda_qr_t,time_)
+    time_ = @elapsed run(SUITE["CUDA"][("qr",elty,s)])
+    push!(cuda_qr_t,time_)
     #println("done (cuda_qr took $time_ seconds")
 end
 
-plt = plot(SIZES,magma_svd_t,label="magma_svd",margin=5Plots.mm,marker=:auto)
+plt = plot(SIZES,magma_qr_t,label="magma_qr_gpu",margin=5Plots.mm,marker=:auto)
 #plot!(plt,SIZES,magma_qr_t,label="magma_qr",marker=:auto)
 #plot!(plt,SIZES,cuda_svd_t,label="cuda_svd",marker=:auto)
-plot!(plt,SIZES,cuda_svd_t,label="cuda_svd",margin=5Plots.mm,marker=:auto)
+plot!(plt,SIZES,cuda_qr_t,label="cuda_qr",margin=5Plots.mm,marker=:auto)
 xaxis!(plt, "size (N x N)")
 yaxis!(plt, "time in seconds")
-savefig("magma_benchmark.png")
-savefig("magma_benchmark.pdf")
+savefig("magmaqr_benchmark.png")
+savefig("magmaqr_benchmark.pdf")
 
 
 end # module
