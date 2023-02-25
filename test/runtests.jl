@@ -305,6 +305,21 @@ getrf! as lgetrf!, geqrf! as lgeqrf!, gebrd! as lgebrd!,getri! as lgetri!,geqlf!
             
         end
     end
+    #=@testset "geqrf_multipleGPUS" begin
+        @testset for elty in (Float32,Float64,ComplexF32,ComplexF64)
+            A = rand(elty,10000,10000)
+            #A_cu=cu(copy(A))
+            #expect_res= CUDA.qr(A)
+            magma_init()
+            actual_res=geqrf!(A,4)
+            magma_finalize()
+            #=for i in 1:length(actual_res)
+                @test Array(actual_res[i]) ≈ Array(expect_res[i])
+            end=#
+
+            
+        end
+    end=#
 
     @testset "gebrd" begin
         @testset for elty in (Float32,Float64,ComplexF32,ComplexF64) 
