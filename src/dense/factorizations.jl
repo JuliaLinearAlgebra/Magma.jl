@@ -268,7 +268,7 @@ for (getrf,geqrf,geqrf_m,geqrfnb,getri,getrinb,getrs,elty,relty) in
    
     @eval begin
         
-        function getrf!(A::CuMatrix{$elty})
+        function getrf!(A::StridedCuMatrix{$elty})
             m,n=size(A)
             minmn=min(m,n)
             ipiv=similar(Matrix(A),BlasInt,minmn)
@@ -279,7 +279,7 @@ for (getrf,geqrf,geqrf_m,geqrfnb,getri,getrinb,getrs,elty,relty) in
             return A,ipiv,info[]
         end
 
-        function geqrf!(A::CuArray{$elty})
+        function geqrf!(A::StridedCuMatrix{$elty})
             m,n=size(A)
             minmn=min(m,n)
             nb=LibMagma.$geqrfnb(m,n)
@@ -292,7 +292,7 @@ for (getrf,geqrf,geqrf_m,geqrfnb,getri,getrinb,getrs,elty,relty) in
             return A,tau
     
         end
-        function geqrf!(A::CuArray{$elty},ngpus::BlasInt)
+        function geqrf!(A::AbstractMatrix{$elty},ngpus::BlasInt)
             m,n=size(A)
             minmn=min(m,n)
             tau=similar(Matrix(A),$elty,minmn)
@@ -312,7 +312,7 @@ for (getrf,geqrf,geqrf_m,geqrfnb,getri,getrinb,getrs,elty,relty) in
     
         end
 
-        function getri!(A::CuMatrix{$elty},ipiv::Array{BlasInt})
+        function getri!(A::StridedCuMatrix{$elty},ipiv::Array{BlasInt})
             n=checksquare(A)
             if n != length(ipiv)
                 throw(DimensionMismatch("ipiv has length $(length(ipiv)), but needs $n"))
@@ -325,7 +325,7 @@ for (getrf,geqrf,geqrf_m,geqrfnb,getri,getrinb,getrs,elty,relty) in
             return A
         end
 
-        function getrs!(trans::AbstractChar,A::CuMatrix{$elty},ipiv::Array{BlasInt},B::CuArray{$elty},)
+        function getrs!(trans::AbstractChar,A::StridedCuMatrix{$elty},ipiv::Array{BlasInt},B::StridedCuMatrix{$elty})
             n=checksquare(A)
             trans_m = trans == 'T' ? MagmaTrans : ( trans == 'C' ? MagmaConjTrans : MagmaNoTrans)
             if n != size(B, 1)

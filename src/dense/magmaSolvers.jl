@@ -67,7 +67,7 @@ for(gesv,gels,elty) in (
     (:magma_cgesv_gpu,:magma_cgels_gpu,:ComplexF32)
 )
 @eval begin
-    function gesv!(A::CuArray{$elty},B::CuArray{$elty})
+    function gesv!(A::StridedCuMatrix{$elty},B::StridedCuMatrix{$elty})
         n=checksquare(A)
         if n != size(B,1)
             throw(DimensionMismatch("B has a leading dimension $(size(B,1)), but needs $n"))
@@ -82,7 +82,7 @@ for(gesv,gels,elty) in (
         return B,A,ipiv
     end
 
-    function gels!(trans::AbstractChar,A::CuArray{$elty},B::CuArray{$elty})
+    function gels!(trans::AbstractChar,A::StridedCuMatrix{$elty},B::StridedCuMatrix{$elty})
         checktranspose(trans)
         m,n =size(A)
         btrn= trans == 'N'
@@ -164,7 +164,7 @@ for(posv,elty) in (
 
 )
    @eval begin
-    function posv!(uplo::AbstractChar,A::CuArray{$elty},B::CuArray{$elty})
+    function posv!(uplo::AbstractChar,A::StridedCuMatrix{$elty},B::StridedCuMatrix{$elty})
         n=checksquare(A)
         checkuplo(uplo)
         uplo_magma= uplo == 'U' ? MagmaUpper : MagmaLower
