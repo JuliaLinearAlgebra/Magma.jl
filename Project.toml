@@ -7,6 +7,8 @@ version = "0.1.0"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MAGMA_jll = "7a7c8717-d270-5a90-94a0-6104d6fc12ee"
+Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 
 [compat]
+Preferences = "1.4"
 julia = "1"
